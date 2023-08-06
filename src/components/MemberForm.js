@@ -1,30 +1,40 @@
 import { React, useState } from "react";
+import Button from 'react-bootstrap/Button';
+import Form from 'react-bootstrap/Form';
+import InputGroup from 'react-bootstrap/InputGroup';
 
 export default function MemberForm({ members, handleSubmitMember }) {
   const [name, setName] = useState("");
 
-  const handleClear = (e) => {
-    e.preventDefault();
-    setName("");
-  };
+
 
   return (
     <>
-      <h1>Add members involved in this bill!</h1>
-      <h1>Current Members...</h1>
-      <form onSubmit={handleSubmitMember}>
-        <label>Member</label>
-        <input
-          name="member"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-      </form>
-      {members ? (
-        members.map((member) => <li key={member}>{member}</li>)
-      ) : (
-        <h5>None</h5>
-      )}
+      <div className='fw-bolder fs-3'>Add members</div>
+      <Form onSubmit={(e) => {handleSubmitMember(e); setName('');}}>
+        <Form.Group className="mb-3" controlId="formBasicEmail">
+          <InputGroup>
+            <InputGroup.Text id="basic-addon1">Name</InputGroup.Text>
+            <Form.Control type="text" name="member"
+              value={name}
+              onChange={(e) => setName(e.target.value)} />
+          </InputGroup>
+
+          <Form.Text className="text-muted">
+            {members ? (
+              members.map(function (member, index) {
+                return <span key={index}>{(index ? ', ' : '') + member}</span>;
+              })
+            ) : (
+              <h5>None</h5>
+            )}
+          </Form.Text>
+        </Form.Group>
+
+        <Button variant="outline-primary" type="submit">
+          Submit
+        </Button>
+      </Form>
     </>
   );
 }
