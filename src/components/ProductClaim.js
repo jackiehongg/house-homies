@@ -4,18 +4,7 @@ import Form from 'react-bootstrap/Form';
 import Stack from 'react-bootstrap/Stack';
 import Button from 'react-bootstrap/Button';
 
-
-export default function ProductClaim({
-  members,
-  items,
-  values,
-  checks,
-  setChecks,
-  handleClaimSubmit,
-}) {
-  const pairs = items.map(function (item, i) {
-    return [item, values[i]];
-  });
+export default function ProductClaim({ members, products, checks, setChecks, handleClaimSubmit, handleDeleteProduct }) {
 
   // TODO: Warning when adding member after item is created
   const handleClick = (e) => {
@@ -26,35 +15,31 @@ export default function ProductClaim({
     setChecks(newChecks);
   };
 
-  useEffect(() => console.log(checks), [checks])
-
   return (
     <>
       <div className='fw-bolder fs-3'>Check off your items below</div>
-
       <Form onSubmit={handleClaimSubmit}>
-        {pairs.map((pair, index) => {
+        {products.map((product) => {
           return (
             <>
               <Stack direction='horizontal' gap={5}>
-                <div className='p-2 text-capitalize'>{pair[0]} {pair[1]}</div>
+                <a href='/' style={{'textDecoration': 'none', 'color': 'inherit'}} onClick={(e) => handleDeleteProduct(e, product['id'])} className='p-2 text-capitalize'>{product['label']} {product['value']}</a>
                 <div className="='p-2' ms-auto">
                   {members.map((member) => (
-                  <Form.Check
-                    inline
-                    // label={member}
-                    name={member + index}
-                    type="checkbox"
-                    checked={checks[member + index]}
-                    onChange={handleClick}
-                  />
-                ))}
-                  </div>
+                    <Form.Check
+                      inline
+                      key={member + product['id']}
+                      name={member + product['id']}
+                      type="checkbox"
+                      checked={checks[member + product['id']]}
+                      onChange={handleClick}
+                    />
+                  ))}
+                </div>
               </Stack>
             </>
           );
         })}
-
         <br />
         <Button variant='outline-primary' type="submit">Finalize</Button>
       </Form>

@@ -3,10 +3,8 @@ import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import InputGroup from 'react-bootstrap/InputGroup';
 
-export default function MemberForm({ members, handleSubmitMember }) {
+export default function MemberForm({ members, handleSubmitMember, handleDeleteMember }) {
   const [name, setName] = useState("");
-
-
 
   return (
     <>
@@ -23,7 +21,7 @@ export default function MemberForm({ members, handleSubmitMember }) {
           <Form.Text className="text-muted">
             {members ? (
               members.map(function (member, index) {
-                return <span key={index}>{(index ? ', ' : '') + member}</span>;
+                return <a href='/' className='text-capitalize' style={{'textDecoration': 'none', 'color': 'inherit'}} onClick={(e) => handleDeleteMember(e, member)}key={member}>{(index ? ', ' : '') + member}</a>;
               })
             ) : (
               <h5>None</h5>

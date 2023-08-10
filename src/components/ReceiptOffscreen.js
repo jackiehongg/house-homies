@@ -8,7 +8,6 @@ export default function ReceiptOffscreen({ show, handleToggleShow, user, handleV
     e.preventDefault()
     axios.get(id + '/receipts')
         .then(function (response) {
-          console.log(response);
           const data = response.data
           handleViewReceipt(data)
         }).catch(function (error) {

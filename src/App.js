@@ -6,17 +6,15 @@ import NavbarMenu from './components/NavbarMenu'
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import axios from 'axios';
-
+import { v4 as uuidv4 } from 'uuid';
 
 import Container from 'react-bootstrap/Container';
 
 function App() {
   const [members, setMembers] = useState([]);
-  const [items, setItems] = useState([]);
-  const [values, setValues] = useState([]);
+  const [products, setProducts] = useState([]);
   const [checks, setChecks] = useState({});
   const [debt, setDebt] = useState({})
-  const [index, setIndex] = useState(0);
   const [show, setShow] = useState(false);
   const [receiptID, setReceiptID] = useState(null)
   const [user, setUser] = useState(null)
@@ -25,84 +23,100 @@ function App() {
   const handleShow = () => setShow(true);
 
   const handleViewReceipt = (data) => {
-    // e.preventDefault();
-    console.log(data);
     setMembers(data['members'])
-    setItems(data['items'])
-    setValues(data['values'])
+    setProducts(data['products'])
     setChecks(data['checks'])
     setDebt(data['debt'])
-    setIndex(data['index'])
     setReceiptID(data['_id']['$oid'])
-    console.log(receiptID)
   }
 
   const handleSubmitMember = (e) => {
     e.preventDefault();
     setMembers([...members, e.target.member.value]);
+    const newCheck = {}
+    for (const product of products) {
+      newCheck[e.target.member.value+product['id']] = false
+    }
+    setChecks(Object.assign({}, checks, newCheck))
   };
+
+  const handleDeleteMember = (e, member) => {
+    e.preventDefault();
+    const newMembers = [...members]
+    newMembers.splice(newMembers.indexOf(member), 1)
+    setMembers(newMembers)
+    const newChecks = {...checks}
+    for (const product of products) {
+      delete newChecks[member+product['id']]
+    }
+    setChecks(newChecks)
+  }
 
   const handleSubmitProduct = (e) => {
     e.preventDefault();
-    setItems([...items, e.target.item.value]);
-    setValues([...values, e.target.value.value]);
-    let newCheck = {};
-    members.map((member) => {
-      newCheck[member + index] = false;
-      return null;
-    });
-    setIndex(index + 1);
-    setChecks(Object.assign({}, checks, newCheck));
-  };
+    const newItem = { 'id': uuidv4(), 'label': e.target.item.value, 'value': e.target.value.value }
+    const newProducts = [ ...products, newItem ]
+    setProducts(newProducts);
+    const newChecks = {}
+    members.forEach((member) => {newChecks[member + newItem['id']] = false});
+    setChecks(Object.assign({}, checks, newChecks))
+  }
 
-  // useEffect(() => {console.log(checks);}, [checks]);
+  const handleDeleteProduct = (e, targetID) => {
+    e.preventDefault()
+
+    const newProducts = [...products]
+    const idx = newProducts.findIndex(({id}) => id === targetID)
+    products.splice(idx, 1)
+
+    const newChecks = { ...checks };
+
+    for (const member of members) {
+      delete newChecks[member + targetID]
+    }
+    setChecks(newChecks)
+  }
 
   const handleClaimSubmit = (e) => {
     e.preventDefault();
-    console.log(checks);
 
     const newDebt = {};
     for (const member of members) newDebt[member] = 0;
-    for (let i = 0; i < index; i++) {
-      let numClaims = 0;
 
-      // Compute cost of split between members who claim
+    // For every product, calculate evenly split share of product's value among members who claim and add to debt.
+    for (const product of products) {
+      let numClaims = 0
+
       for (const member of members) {
-        numClaims = checks[member + i] ? numClaims + 1 : numClaims;
+        numClaims = checks[member + product['id']] ? numClaims + 1 : numClaims
       }
-      const share = values[i] / numClaims;
 
-      // Update debts
+      let share = product['value'] / numClaims
       for (const member of members) {
-        if (checks[member + i]) newDebt[member] = newDebt[member] + share;
-        console.log(member + i)
+        if (checks[member + product['id']]) {
+          newDebt[member] += share
+        }
       }
     }
+
     setDebt(newDebt)
     handleShow()
   };
 
   const handleSaveChanges = (e) => {
     e.preventDefault();
-    console.log('saving')
-
 
     const body = {
       "username": user['username'],
       "members": members,
-      "items": items,
-      "values": values,
+      "products": products,
       "checks": checks,
       "debt": debt,
-      "index": index,
     }
-
-    console.log(body)
 
     if (receiptID) {
       axios.put(receiptID + '/save_changes', body)
         .then(function (response) {
-          console.log(response);
           const id = response.data
           setReceiptID(id)
         }).catch(function (error) {
@@ -111,7 +125,6 @@ function App() {
     } else {
       axios.post('/save_changes', body)
         .then(function (response) {
-          console.log(response);
           const id = response.data
           setReceiptID(id)
         }).catch(function (error) {
@@ -122,23 +135,19 @@ function App() {
 
   return (
     <Container>
-      <NavbarMenu setUser={setUser} user={user} handleViewReceipt={handleViewReceipt}/>
-      <MemberForm members={members} handleSubmitMember={handleSubmitMember} />
-      <ProductForm
-        items={items}
-        values={values}
-        handleSubmitProduct={handleSubmitProduct}
-      />
-      {/* <ProductList items={items} values={values} /> */}
+      <NavbarMenu setUser={setUser} user={user} handleViewReceipt={handleViewReceipt} />
+      <MemberForm members={members} handleSubmitMember={handleSubmitMember} handleDeleteMember={handleDeleteMember} />
+      <ProductForm handleSubmitProduct={handleSubmitProduct}/>
       <ProductClaim
         members={members}
-        items={items}
-        values={values}
+        products={products}
         checks={checks}
         setChecks={setChecks}
         handleClaimSubmit={handleClaimSubmit}
+        handleDeleteProduct={handleDeleteProduct}
       />
 
+      {/* Move this into own component */}
       <Modal debt={debt} show={show} onHide={handleClose}>
         <Modal.Header closeButton>
           <Modal.Title>Splits</Modal.Title>
@@ -154,8 +163,6 @@ function App() {
       </Modal>
       <br></br>
       <Button variant='secondary' onClick={handleSaveChanges}>Save Changes</Button>
-
-
     </Container>
   );
 }
@@ -163,8 +170,6 @@ function App() {
 export default App;
 
 /* TODO
-Log out, username/pw check
-Remove Members and products
 Deploy
 --- mvp 2
 Share link

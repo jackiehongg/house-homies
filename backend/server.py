@@ -17,78 +17,74 @@ users = db.users
 @app.post("/login")
 def login_account():
 
-    print(request.json)
-    username = request.json["username"]
-    password = request.json["password"]
+    try:
+        print(request.json)
+        username = request.json["username"]
+        password = request.json["password"]
 
-    if password:
-        cursor = users.find({'username': username, 'password': password})
-    else:
-        cursor = users.find({'username': username})
+        if password:
+            cursor = users.find({'username': username, 'password': password})
+        else:
+            cursor = users.find({'username': username})
 
-    print(cursor[0])
-    # return json.jsonify(cursor[0])
-    return json.loads(json_util.dumps(cursor[0]))
+        # return json.jsonify(cursor[0])
+        return json.loads(json_util.dumps(cursor[0]))
+    except IndexError:
+        return 'Username/Password combination not found', 400
 
 @app.post("/register")
 def register_account():
     username = request.json["username"]
     password = request.json["password"]
-    res = users.insert_one(
+
+    cursor = users.find({"username": username})
+    if len(list(cursor)) > 0:
+        return 'Account already exists', 409
+    
+    cursor = users.insert_one(
         {
             "username": username,
             "password": password,
             "receipts": []
         }
     )
-    return str(res.inserted_id)
-
+    cursor = users.find({"_id": cursor.inserted_id})
+    return json.loads(json_util.dumps(cursor[0]))
 
 @app.put("/<id>/save_changes")
 def update_receipt(id):
-    print("updating")
-    print(request.json)
     members = request.json["members"]
-    items = request.json["items"]
-    values = request.json["values"]
+    products = request.json["products"]    
     checks = request.json["checks"]
     debt = request.json["debt"]
-    index = request.json["index"]
     res = receipts.update_one(
         {"_id": ObjectId(id)},
         {
             "$set": {
                 "members": members,
-                "items": items,
-                "values": values,
+                "products": products,
                 "checks": checks,
                 "debt": debt,
-                "index": index,
             }
         },
     )
-    return str(res.upserted_id)
-
+    if not res.acknowledged:
+        return 'Update failed', 409
+    return id
 
 @app.post("/save_changes")
 def save_receipt():
-    print("saving")
-    print(request.json)
     username = request.json['username']
     members = request.json["members"]
-    items = request.json["items"]
-    values = request.json["values"]
+    products = request.json["products"]
     checks = request.json["checks"]
     debt = request.json["debt"]
-    index = request.json["index"]
     res = receipts.insert_one(
         {
             "members": members,
-            "items": items,
-            "values": values,
+            "products": products,
             "checks": checks,
             "debt": debt,
-            "index": index,
         }
     )
 
@@ -101,13 +97,11 @@ def save_receipt():
 
 @app.get("/<id>/receipts")
 def get_receipt(id):
-    print(f'fetching receipt {id}')
     cursor = receipts.find(
         {"_id": ObjectId(id)}
     )
 
     return json.loads(json_util.dumps(cursor[0]))
-
 
 @app.route("/", methods=("GET", "POST"))
 def index():
@@ -120,12 +114,10 @@ def index():
     all_receipts = receipts.find()
     return render_template("index.html", receipts=all_receipts)
 
-
 @app.post("/<id>/delete/")
 def delete(id):
     receipts.delete_one({"_id": ObjectId(id)})
     return redirect(url_for("index"))
-
 
 # Running app
 if __name__ == "__main__":

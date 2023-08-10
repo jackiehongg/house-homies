@@ -10,6 +10,8 @@ export default function Login({ show, handleToggleShow, setUser }) {
     const [login, setLogin] = useState(true)
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
+    const [showLoginAlert, setShowLoginAlert] = useState(false)
+    const [showRegisterAlert, setShowRegisterAlert] = useState(false)
 
     const handletoggleLogin = (e) => {
         e.preventDefault()
@@ -24,14 +26,14 @@ export default function Login({ show, handleToggleShow, setUser }) {
             "password": password
         }
 
-        console.log(body)
-
         axios.post('/login', body)
             .then(function (response) {
-                console.log(response);
                 const newUser = response.data
                 setUser(newUser)
+                setShowLoginAlert(false)
+                handleToggleShow()
             }).catch(function (error) {
+                setShowLoginAlert(true)
                 console.log(error)
             });
     }
@@ -46,11 +48,12 @@ export default function Login({ show, handleToggleShow, setUser }) {
 
         axios.post('/register', body)
             .then(function (response) {
-                console.log(response);
-                const id = response.data
-                setUser(id)
+                const newUser = response.data
+                setUser(newUser)
+                setShowRegisterAlert(false)
             }).catch(function (error) {
                 console.log(error)
+                setShowRegisterAlert(true)
             });
     }
     return (
@@ -71,6 +74,9 @@ export default function Login({ show, handleToggleShow, setUser }) {
                             <Form.Group className="mb-3" controlId="formBasicPassword">
                                 <Form.Label>Password (optional)</Form.Label>
                                 <Form.Control type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                                <Form.Text style={{'color':'red'}}>
+                                    {showLoginAlert ? 'Account not found. Check your username and password.' : ''}
+                                </Form.Text>
                             </Form.Group>
                             <Button className='p-2 mr-auto' variant="primary" type='submit'>Log In</Button>
                         </Form>) :
@@ -78,6 +84,9 @@ export default function Login({ show, handleToggleShow, setUser }) {
                             <Form.Group className="mb-3" controlId="formBasicEmail">
                                 <Form.Label>Username</Form.Label>
                                 <Form.Control type="text" placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} />
+                                <Form.Text style={{'color':'red'}}>
+                                    {showRegisterAlert ? 'This usename is already taken. Try another.' : ''}
+                                </Form.Text>
                             </Form.Group>
 
                             <Form.Group className="mb-3" controlId="formBasicPassword">

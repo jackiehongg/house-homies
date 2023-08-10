@@ -12,16 +12,10 @@ export default function NavbarMenu({ setUser, user, handleViewReceipt }) {
 
     const handleToggleShowLogin = () => setShowLogin(!showLogin);
     const handleToggleShowOffscreen = () => setShowOffscreen(!showOffscreen);
+    const handleLogout = () => setUser(null)
 
     return (
         <>
-            {/* <Navbar expand="lg" className="bg-body-primary">
-                <Container>
-                    <Navbar.Brand>HouseHomies</Navbar.Brand>
-                    <Nav.Link onClick={handleToggleShowLogin}>{user ? 'Logged in as ' + user['username'] : 'Login'}</Nav.Link>
-                </Container>
-            </Navbar> */}
-
             <Navbar expand="lg" className="bg-body-tertiary">
                 <Container>
                     <Navbar.Brand>HouseHomies</Navbar.Brand>
@@ -31,6 +25,7 @@ export default function NavbarMenu({ setUser, user, handleViewReceipt }) {
                         <Nav className="me-auto">
                             <Nav.Link onClick={handleToggleShowOffscreen}>Receipts</Nav.Link>
                             <Nav.Link onClick={handleToggleShowLogin}>{user ? 'Logged in as ' + user['username'] : 'Login'}</Nav.Link>
+                            <Nav.Link onClick={handleLogout}>{user ? 'Logout' : ''}</Nav.Link>
                         </Nav>
                     </Navbar.Collapse>
                 </Container>
