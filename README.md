@@ -20,10 +20,3 @@ Hosted at https://house-homies.onrender.com.
 * React
 * Flask
 * MongoDB
-
-## Running Locally
-In the project directory run:
-
-### `npm run dev`
-
-This will run the frontend and backend together
