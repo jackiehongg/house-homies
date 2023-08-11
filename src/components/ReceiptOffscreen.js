@@ -2,6 +2,9 @@ import Button from 'react-bootstrap/Button';
 import Offcanvas from 'react-bootstrap/Offcanvas';
 import axios from 'axios';
 
+axios.defaults.baseURL = 'https://house-homies-api.onrender.com/';
+
+
 export default function ReceiptOffscreen({ show, handleToggleShow, user, handleViewReceipt }) {
 
   const handleUserReceipts = (e, id) => {

@@ -12,6 +12,8 @@ import {disableReactDevTools } from '@fvilers/disable-react-devtools';
 
 if (process.env.NODE_ENV === 'production') disableReactDevTools()
 
+axios.defaults.baseURL = 'https://house-homies-api.onrender.com/';
+
 function App() {
   const [members, setMembers] = useState([]);
   const [products, setProducts] = useState([]);

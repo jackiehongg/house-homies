@@ -11,6 +11,9 @@ from dotenv import load_dotenv
 # Initializing flask app
 app = Flask(__name__)
 CORS(app, origins=['http://localhost:3000', 'https://house-homies.onrender.com/'])
+# CORS(app)
+
+
 
 load_dotenv()
 DATABASE_URI = getenv('DATABASE_URI')
