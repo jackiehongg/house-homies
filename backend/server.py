@@ -1,14 +1,28 @@
-from flask import Flask, render_template, request, url_for, redirect, json
+from flask import Flask, request, json, current_app, g
 from flask_cors import CORS
+from werkzeug.local import LocalProxy
 from pymongo import MongoClient
+from pymongo.server_api import ServerApi
 from bson.objectid import ObjectId
 from bson import json_util
+from os import getenv
+from dotenv import load_dotenv
 
 # Initializing flask app
 app = Flask(__name__)
 CORS(app, origins=['http://localhost:3000', 'https://house-homies.onrender.com/'])
 
-client = MongoClient("localhost", 27017)
+load_dotenv()
+DATABASE_URI = getenv('DATABASE_URI')
+
+client = MongoClient(DATABASE_URI, server_api=ServerApi('1'))
+
+try:
+    client.admin.command('ping')
+    print("Pinged your deployment. You successfully connected to MongoDB!")
+except Exception as e:
+    print(e)
+
 db = client.househomies
 receipts = db.receipts
 users = db.users
