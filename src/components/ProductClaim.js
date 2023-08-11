@@ -1,4 +1,4 @@
-import { React, useEffect } from "react";
+import { React } from "react";
 
 import Form from 'react-bootstrap/Form';
 import Stack from 'react-bootstrap/Stack';
@@ -23,7 +23,7 @@ export default function ProductClaim({ members, products, checks, setChecks, han
           return (
             <>
               <Stack direction='horizontal' gap={5}>
-                <a href='/' style={{'textDecoration': 'none', 'color': 'inherit'}} onClick={(e) => handleDeleteProduct(e, product['id'])} className='p-2 text-capitalize'>{product['label']} {product['value']}</a>
+                <a href='/' style={{ 'textDecoration': 'none', 'color': 'inherit' }} onClick={(e) => handleDeleteProduct(e, product['id'])} className='p-2 text-capitalize'>{product['label']} {product['value']}</a>
                 <div className="='p-2' ms-auto">
                   {members.map((member) => (
                     <Form.Check

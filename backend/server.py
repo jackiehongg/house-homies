@@ -1,13 +1,12 @@
 from flask import Flask, render_template, request, url_for, redirect, json
+from flask_cors import CORS
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from bson import json_util
-import datetime
-
-x = datetime.datetime.now()
 
 # Initializing flask app
 app = Flask(__name__)
+CORS(app, origins=['http://localhost:3000', 'https://house-homies.onrender.com/'])
 
 client = MongoClient("localhost", 27017)
 db = client.househomies
@@ -27,7 +26,6 @@ def login_account():
         else:
             cursor = users.find({'username': username})
 
-        # return json.jsonify(cursor[0])
         return json.loads(json_util.dumps(cursor[0]))
     except IndexError:
         return 'Username/Password combination not found', 400
@@ -103,21 +101,9 @@ def get_receipt(id):
 
     return json.loads(json_util.dumps(cursor[0]))
 
-@app.route("/", methods=("GET", "POST"))
-def index():
-    if request.method == "POST":
-        content = request.form["content"]
-        degree = request.form["degree"]
-        receipts.insert_one({"content": content, "degree": degree})
-        return redirect(url_for("index"))
-
-    all_receipts = receipts.find()
-    return render_template("index.html", receipts=all_receipts)
-
-@app.post("/<id>/delete/")
-def delete(id):
-    receipts.delete_one({"_id": ObjectId(id)})
-    return redirect(url_for("index"))
+@app.route('/')
+def default():
+    return 'HouseHomies-backend'
 
 # Running app
 if __name__ == "__main__":

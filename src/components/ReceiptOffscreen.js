@@ -34,7 +34,6 @@ export default function ReceiptOffscreen({ show, handleToggleShow, user, handleV
           ) :
             ('No user')
           }
-          {/* {user['receipts'].map((id) => (id['$oid']))} */}
         </Offcanvas.Body>
       </Offcanvas>
     </>

@@ -5,10 +5,12 @@ import ProductClaim from "./components/ProductClaim";
 import NavbarMenu from './components/NavbarMenu'
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
+import Container from 'react-bootstrap/Container';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
+import {disableReactDevTools } from '@fvilers/disable-react-devtools';
 
-import Container from 'react-bootstrap/Container';
+if (process.env.NODE_ENV === 'production') disableReactDevTools()
 
 function App() {
   const [members, setMembers] = useState([]);
@@ -169,11 +171,4 @@ function App() {
 
 export default App;
 
-/* TODO
-Deploy
---- mvp 2
-Share link
-Clean up code
-Document
 
-*/
