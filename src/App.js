@@ -159,7 +159,7 @@ function App() {
     if (process.env.NODE_ENV !== 'production')
       setShareLink('http://localhost:3000/?receiptid=' + id)
     else
-      setShareLink('https://house-homies-api.onrender.com/?receiptid=' + id)
+      setShareLink('https://house-homies.onrender.com/?receiptid=' + id)
   }
 
   const handleShare = (e) => {

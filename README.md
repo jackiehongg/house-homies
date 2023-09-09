@@ -6,7 +6,7 @@ Hosted at https://house-homies.onrender.com.
 - [x] Add group members and billable items
 - [x] Claim billable items for involved members
 - [x] Calculate amounts owed by each member for their items claimed
-    - [ ] Weighted claims for uneven shares
+    - [x] Weighted claims for uneven shares
 - [x] Remove members or billable items
 - [x] Basic accounts
     - [x] Save and load past bills
@@ -14,7 +14,7 @@ Hosted at https://house-homies.onrender.com.
 - [ ] Sorting
 - [ ] Considerations for accessibility
 - [ ] Mobile improvements
-- [ ] Share link
+- [x] Share link
 
 ## Technologies
 * React
