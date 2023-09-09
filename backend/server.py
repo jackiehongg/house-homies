@@ -10,12 +10,16 @@ from dotenv import load_dotenv
 
 # Initializing flask app
 app = Flask(__name__)
-CORS(app, origins=['https://house-homies.onrender.com'])
+CORS(app, origins=['https://house-homies.onrender.com', 'http://localhost:3000'])
 
 load_dotenv()
-DATABASE_URI = getenv('DATABASE_URI')
-
-client = MongoClient(DATABASE_URI, server_api=ServerApi('1'))
+FLASK_ENV = getenv('FLASK_ENV')
+if FLASK_ENV == 'production':
+    DATABASE_URI = getenv('DATABASE_URI')
+    client = MongoClient(DATABASE_URI, server_api=ServerApi('1'))
+else:
+    client = MongoClient()
+    print('connected to dev database')
 
 try:
     client.admin.command('ping')
@@ -65,6 +69,7 @@ def register_account():
 
 @app.put("/<id>/save_changes")
 def update_receipt(id):
+    username = request.json['username']
     members = request.json["members"]
     products = request.json["products"]    
     checks = request.json["checks"]
@@ -82,6 +87,13 @@ def update_receipt(id):
     )
     if not res.acknowledged:
         return 'Update failed', 409
+    
+    if username:
+        users.update_one(
+            {"username": username},
+            {'$addToSet': {'receipts': ObjectId(id)}}
+        )
+
     return id
 
 @app.post("/save_changes")
@@ -100,10 +112,13 @@ def save_receipt():
         }
     )
 
-    users.update_one(
-        {"username": username},
-        {'$push': {'receipts': res.inserted_id}}
-    )
+    print(username)
+    if username:
+        print('username')
+        users.update_one(
+            {"username": username},
+            {'$push': {'receipts': res.inserted_id}}
+        )
 
     return str(res.inserted_id)
 
@@ -112,7 +127,6 @@ def get_receipt(id):
     cursor = receipts.find(
         {"_id": ObjectId(id)}
     )
-
     return json.loads(json_util.dumps(cursor[0]))
 
 @app.route('/')

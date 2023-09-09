@@ -2,17 +2,14 @@ import Button from 'react-bootstrap/Button';
 import Offcanvas from 'react-bootstrap/Offcanvas';
 import axios from 'axios';
 
-axios.defaults.baseURL = 'https://house-homies-api.onrender.com/';
-
-
-export default function ReceiptOffscreen({ show, handleToggleShow, user, handleViewReceipt }) {
+export default function ReceiptOffscreen({ show, handleToggleShow, user, handleLoadReceipt }) {
 
   const handleUserReceipts = (e, id) => {
     e.preventDefault()
     axios.get(id + '/receipts')
         .then(function (response) {
           const data = response.data
-          handleViewReceipt(data)
+          handleLoadReceipt(data)
         }).catch(function (error) {
           console.log(error)
         });
@@ -25,12 +22,10 @@ export default function ReceiptOffscreen({ show, handleToggleShow, user, handleV
           <Offcanvas.Title>Past Receipts</Offcanvas.Title>
         </Offcanvas.Header>
         <Offcanvas.Body>
-          {user ? (
+          {(user && user['receipts']) ? (
             user['receipts'].map((receipt) => (
               <li>
-                {
-                  receipt['$oid']
-                }
+                {receipt['$oid']}
                 <Button variant='primary' onClick={(e) => handleUserReceipts(e, receipt['$oid'])}>View</Button>
               </li>
             ))

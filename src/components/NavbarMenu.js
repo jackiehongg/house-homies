@@ -5,7 +5,7 @@ import Nav from 'react-bootstrap/Nav';
 import Login from './Login';
 import ReceiptOffscreen from './ReceiptOffscreen';
 
-export default function NavbarMenu({ setUser, user, handleViewReceipt }) {
+export default function NavbarMenu({ setUser, user, handleLoadReceipt }) {
 
     const [showLogin, setShowLogin] = useState(false);
     const [showOffscreen, setShowOffscreen] = useState(false);
@@ -32,7 +32,7 @@ export default function NavbarMenu({ setUser, user, handleViewReceipt }) {
             </Navbar>
 
             <Login setUser={setUser} show={showLogin} handleToggleShow={handleToggleShowLogin} />
-            <ReceiptOffscreen show={showOffscreen} handleToggleShow={handleToggleShowOffscreen} user={user} handleViewReceipt={handleViewReceipt}/>
+            <ReceiptOffscreen show={showOffscreen} handleToggleShow={handleToggleShowOffscreen} user={user} handleLoadReceipt={handleLoadReceipt}/>
         </>
     );
 }
