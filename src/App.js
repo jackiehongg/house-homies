@@ -5,8 +5,8 @@ import ProductClaim from "./components/ProductClaim";
 import NavbarMenu from './components/NavbarMenu';
 import ShareLink from './components/ShareLink';
 import Debts from './components/Debts';
-import Button from 'react-bootstrap/Button';
-import Container from 'react-bootstrap/Container';
+import Button from '@mui/material/Button';
+import Container from '@mui/material/Container';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import { disableReactDevTools } from '@fvilers/disable-react-devtools';
@@ -31,6 +31,7 @@ function App() {
   const handleShowDebts = () => setShowDebts(true);
   const handleCloseDebts = () => setShowDebts(false);
 
+  const base_url = process.env.NODE_ENV === 'production' ? 'https://house-homies.onrender.com' : 'http://localhost:3000'
   const URLparams = new URLSearchParams(window.location.search)
   const URLreceiptid = URLparams.get('receiptid')
 
@@ -79,12 +80,13 @@ function App() {
 
   const handleSubmitProduct = (e) => {
     e.preventDefault();
-    const newItem = { 'id': uuidv4(), 'label': e.target.item.value, 'value': e.target.value.value }
+    const newItem = { 'id': uuidv4(), 'label': e.target.label.value, 'value': e.target.value.value }
     const newProducts = [...products, newItem]
     setProducts(newProducts);
     const newChecks = {}
     members.forEach((member) => { newChecks[member + newItem['id']] = 0 });
     setChecks(Object.assign({}, checks, newChecks))
+    
   }
 
   const handleDeleteProduct = (e, targetID) => {
@@ -137,6 +139,7 @@ function App() {
       "debt": debt,
     }
 
+    // If saving existing receipt else saving new receipt
     let id = null
     if (receiptID) {
       await axios.put(receiptID + '/save_changes', body)
@@ -156,35 +159,27 @@ function App() {
         });
     }
 
-    if (process.env.NODE_ENV !== 'production')
-      setShareLink('http://localhost:3000/?receiptid=' + id)
-    else
-      setShareLink('https://house-homies.onrender.com/?receiptid=' + id)
   }
 
   const handleShare = (e) => {
+    setShareLink(base_url + '/?receiptid=' + receiptID)
     handleShowShareLink()
   }
 
   return (
     <Container>
       <NavbarMenu setUser={setUser} user={user} handleLoadReceipt={handleLoadReceipt} />
-      <MemberForm members={members} handleSubmitMember={handleSubmitMember} handleDeleteMember={handleDeleteMember} />
+      <MemberForm members={members} debt={debt} handleSubmitMember={handleSubmitMember} handleDeleteMember={handleDeleteMember} />
       <ProductForm handleSubmitProduct={handleSubmitProduct} />
-      <ProductClaim
-        members={members}
-        products={products}
-        checks={checks}
-        setChecks={setChecks}
-        handleClaimSubmit={handleClaimSubmit}
-        handleDeleteProduct={handleDeleteProduct}
-      />
+      <ProductClaim members={members} products={products} checks={checks} setChecks={setChecks} handleDeleteProduct={handleDeleteProduct} />
+
+      <br></br>
+      <Button variant='contained' onClick={handleClaimSubmit}>Split</Button>
+      <Button variant='outlined' onClick={handleSaveChanges} >Save Changes</Button>
+      <Button variant='outlined' onClick={handleShare} disabled={receiptID ? false : true}>Share</Button>
+
       <Debts debt={debt} showDebts={showDebts} handleCloseDebts={handleCloseDebts} />
       <ShareLink shareLink={shareLink} showShareLink={showShareLink} handleCloseShareLink={handleCloseShareLink} />
-      <br></br>
-      <Button variant='outline-secondary' onClick={handleSaveChanges} >Save Changes</Button>
-      <Button variant='outline-secondary' onClick={handleShare} disabled={receiptID ? false : true}>Share</Button>
-
     </Container>
   );
 }

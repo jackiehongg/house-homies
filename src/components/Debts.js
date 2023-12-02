@@ -6,9 +6,9 @@ export default function Debts({showDebts, debt, handleCloseDebts}) {
     return (
         <Modal debt={debt} show={showDebts} onHide={handleCloseDebts}>
             <Modal.Header closeButton>
-                <Modal.Title>Share Link</Modal.Title>
+                <Modal.Title>Splits</Modal.Title>
             </Modal.Header>
-            <Modal.Body>{Object.keys(debt).map((key, index) => (
+            <Modal.Body className='p-2 text-capitalize'>{Object.keys(debt).map((key, index) => (
                 <p key={index}> {key}: {Math.round(debt[key] * 100) / 100}</p>
             ))}</Modal.Body>
             <Modal.Footer>

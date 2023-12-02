@@ -1,20 +1,26 @@
 import { React } from "react";
-
-import Form from 'react-bootstrap/Form';
-import Stack from 'react-bootstrap/Stack';
-import Button from 'react-bootstrap/Button';
+import { styled } from '@mui/material/styles';
 import Checkbox from './Checkbox'
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Typography from '@mui/material/Typography';
 
-export default function ProductClaim({ members, products, checks, setChecks, handleClaimSubmit, handleDeleteProduct }) {
 
-  // const handleClick = (e) => {
-  //   console.log(e)
-  //   const key = e.target.name;
-  //   const newChecks = { ...checks };
-  //   if (!newChecks[key]) newChecks[key] = false
-  //   newChecks[key] = !newChecks[key];
-  //   setChecks(newChecks);
-  // };
+export default function ProductClaim({ members, products, checks, setChecks, handleDeleteProduct }) {
+
+  const StyledTableRow = styled(TableRow)(({ theme }) => ({
+    '&:nth-of-type(odd)': {
+      backgroundColor: theme.palette.action.hover,
+    },
+    // hide last border
+    '&:last-child td, &:last-child th': {
+      border: 0,
+    },
+  }));
 
   const handleClick = (e) => {
     const key = e.currentTarget.name
@@ -23,50 +29,42 @@ export default function ProductClaim({ members, products, checks, setChecks, han
     else if (newChecks[key] === 0) newChecks[key] = 1
     else if (newChecks[key] === 1) newChecks[key] = 2
     else if (newChecks[key] === 2) newChecks[key] = 0
-  
-    setChecks(newChecks, console.log(checks));
 
+    setChecks(newChecks);
   }
 
   return (
     <>
-      <div className='fw-bolder fs-3'>Check off your items below</div>
-      <Form onSubmit={handleClaimSubmit}>
-        {products.map((product) => {
-          return (
-            <>
-              <Stack direction='horizontal' gap={3}>
-                <a href='/' style={{ 'textDecoration': 'none', 'color': 'inherit' }} onClick={(e) => handleDeleteProduct(e, product['id'])} className='p-2 text-capitalize'>{product['label']} {product['value']}</a>
-                <div className="='p-2' ms-auto">
-                  {/* {members.map((member) => (
-                    <Form.Check
-                      inline
-                      key={member + product['id']}
-                      name={member + product['id']}
-                      type="checkbox"
-                      checked={checks[member + product['id']]}
-                      onChange={handleClick}
-                    />
-                  ))} */}
-                  <Stack name='stack' direction='horizontal' gap={5}>
+      {members.length > 0 && products.length > 0 ?
+        <>
+          <TableContainer>
+            <Table sx={{ minWidth: 650 }} aria-label="simple table">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Product</TableCell>
+                  <TableCell>Value</TableCell>
+                  {members.map((member) => (<TableCell sx={{textTransform: 'capitalize'}} align='right'>{member}</TableCell>))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {products.map((product) => (
+                  <StyledTableRow key={product['id']} sx={{ 'td ,th': { border: 0 }, borderBottom: 0 }}>
+                    <TableCell><a href='/' style={{ 'textDecoration': 'none', 'color': 'inherit' }} onClick={(e) => handleDeleteProduct(e, product['id'])} className='p-2 text-capitalize'>{product['label']}</a></TableCell>
+                    <TableCell>{product.value}</TableCell>
                     {members.map((member) => (
-                    <Checkbox
-                      key={member + product['id']}
-                      name={member + product['id']}
-                      state={checks[member + product['id']]}
-                      handleClick={handleClick}
-                    />
-                  ))}
-                  </Stack>
-                  
-                </div>
-              </Stack>
-            </>
-          );
-        })}
-        <br />
-        <Button variant='outline-primary' type="submit">Finalize</Button>
-      </Form>
+                      <TableCell align='right'><Checkbox key={member + product['id']} name={member + product['id']} state={checks[member + product['id']]} handleClick={handleClick} /></TableCell>
+                    ))}
+                  </StyledTableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer >
+        </>
+        :
+        <>
+          <Typography variant='h5'>Add your members and some products to get started!</Typography>
+        </>
+      } 
     </>
   );
 }

@@ -1,11 +1,13 @@
 import { React, useState, useRef } from "react";
 
-import Button from 'react-bootstrap/Button';
-import Form from 'react-bootstrap/Form';
-import InputGroup from 'react-bootstrap/InputGroup';
+import Button from '@mui/material/Button';
+import Box from '@mui/material/Box';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+
 
 export default function ProductForm({ handleSubmitProduct }) {
-  const [item, setItem] = useState("");
+  const [label, setLabel] = useState("");
   const [value, setValue] = useState("");
 
   const inputRef = useRef(null);
@@ -13,35 +15,42 @@ export default function ProductForm({ handleSubmitProduct }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     handleSubmitProduct(e);
-    setItem("");
+    setLabel("");
     setValue("");
   }
 
   return (
     <>
-      <div className='fw-bolder fs-3'>Add products</div>
-      <Form onSubmit={(e) => { handleSubmit(e); inputRef.current.focus(); }}>
-        <Form.Group className="mb-3" controlId="formBasicEmail">
-          <InputGroup>
-            <InputGroup.Text id="basic-addon1">Label</InputGroup.Text>
-            <Form.Control type="text" name="item" ref={inputRef}
-              value={item}
-              onChange={(e) => setItem(e.target.value)} />
-          </InputGroup>
-        </Form.Group>
-        <Form.Group className="mb-3" controlId="formBasicEmail">
-          <InputGroup>
-            <InputGroup.Text id="basic-addon1">$</InputGroup.Text>
-            <Form.Control type="number" placeholder="0" name="value"
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-            />
-          </InputGroup>
-        </Form.Group>
-        <Button variant="outline-primary" type="submit" >
-          Submit
-        </Button>
-      </Form>
+      <Box component="form" onSubmit={(e) => {handleSubmit(e); inputRef.current.focus();}} sx={{ '& > :not(style)': { m: 1, width: '25ch' } }} autoComplete='off'>
+        <Typography variant="h5" gutterBottom>Add Product</Typography>
+        <TextField
+          required
+          id="outlined-label"
+          name="label"
+          label="Product"
+          InputLabelProps={{
+            shrink: true,
+          }}
+          size="small"
+          value={label}
+          onChange={(e) => setLabel(e.target.value)}
+          inputRef={inputRef}
+        />
+        <TextField
+          required
+          id="outlined-value"
+          name="value"
+          label="Value"
+          InputLabelProps={{
+            shrink: true,
+          }}
+          size="small"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+        />
+        <Button variant="outlined" type="submit">Submit</Button>
+      </Box>
+
     </>
   );
 }

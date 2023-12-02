@@ -1,38 +1,56 @@
 import { React, useState } from "react";
-import Button from 'react-bootstrap/Button';
-import Form from 'react-bootstrap/Form';
-import InputGroup from 'react-bootstrap/InputGroup';
+import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
+import TextField from '@mui/material/TextField';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
+import ListItemAvatar from '@mui/material/ListItemAvatar';
+import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
+import ImageIcon from '@mui/icons-material/Image';
+import Stack from '@mui/material/Stack';
 
 export default function MemberForm({ members, handleSubmitMember, handleDeleteMember }) {
   const [name, setName] = useState("");
 
   return (
     <>
-      <div className='fw-bolder fs-3'>Add members</div>
-      <Form onSubmit={(e) => {handleSubmitMember(e); setName('');}}>
-        <Form.Group className="mb-3" controlId="formBasicEmail">
-          <InputGroup>
-            <InputGroup.Text id="basic-addon1">Name</InputGroup.Text>
-            <Form.Control type="text" name="member"
-              value={name}
-              onChange={(e) => setName(e.target.value)} />
-          </InputGroup>
+      <Box>
+        <Box component="form" onSubmit={(e) => { handleSubmitMember(e); setName(''); }} sx={{ '& > :not(style)': { m: 1, width: '25ch' } }} autoComplete='off'>
+          <Typography variant="h5" gutterBottom>Add Members</Typography>
+          <TextField
+            required
+            id="outlined-member"
+            name="member"
+            label="Name"
+            InputLabelProps={{
+              shrink: true,
+            }}
+            size="small"
+            value={name}
+            onChange={(e) => setName(e.target.value)} />
+          <Button variant="outlined" type="submit">Submit</Button>
+        </Box>
+      </Box>
 
-          <Form.Text className="text-muted">
-            {members ? (
-              members.map(function (member, index) {
-                return <a href='/' className='text-capitalize' style={{'textDecoration': 'none', 'color': 'inherit'}} onClick={(e) => handleDeleteMember(e, member)}key={member}>{(index ? ', ' : '') + member}</a>;
-              })
-            ) : (
-              <h5>None</h5>
-            )}
-          </Form.Text>
-        </Form.Group>
+      <Box>
+        <List sx={{ padding: 0 }} component={Stack} direction="row">
+          {members.map((member) => (
+            <Button sx={{textTransform: 'capitalize'}}>
+              <ListItem onClick={(e) => handleDeleteMember(e, member)} key={member}>
+                <ListItemAvatar>
+                  <PersonRoundedIcon>
+                    <ImageIcon />
+                  </PersonRoundedIcon>
+                </ListItemAvatar>
+                <ListItemText primary={member} />
+              </ListItem>
+            </Button>
+          ))}
+        </List>
+      </Box>
 
-        <Button variant="outline-primary" type="submit">
-          Submit
-        </Button>
-      </Form>
     </>
   );
 }
