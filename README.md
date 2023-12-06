@@ -5,8 +5,9 @@ Hosted at https://house-homies.onrender.com.
 ## Features and Roadmap
 - [x] Add group members and billable items
 - [x] Claim billable items for involved members
-- [x] Calculate amounts owed by each member for their items claimed
+- [x] Calculate amounts owed by each member for their claimed items
     - [x] Weighted claims for uneven shares
+    - [x] Consider multiple purchasers
 - [x] Remove members or billable items
 - [x] Basic accounts
     - [x] Save and load past bills

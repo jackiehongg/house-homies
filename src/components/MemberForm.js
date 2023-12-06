@@ -37,8 +37,8 @@ export default function MemberForm({ members, handleSubmitMember, handleDeleteMe
       <Box>
         <List sx={{ padding: 0 }} component={Stack} direction="row">
           {members.map((member) => (
-            <Button sx={{textTransform: 'capitalize'}}>
-              <ListItem onClick={(e) => handleDeleteMember(e, member)} key={member}>
+            <Button key={member} sx={{textTransform: 'capitalize'}}>
+              <ListItem onClick={(e) => handleDeleteMember(e, member)}>
                 <ListItemAvatar>
                   <PersonRoundedIcon>
                     <ImageIcon />

@@ -1,12 +1,13 @@
 import { React, useState, useRef } from "react";
-
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import MenuItem from '@mui/material/MenuItem';
 
 
-export default function ProductForm({ handleSubmitProduct }) {
+
+export default function ProductForm({ handleSubmitProduct, members }) {
   const [label, setLabel] = useState("");
   const [value, setValue] = useState("");
 
@@ -21,8 +22,24 @@ export default function ProductForm({ handleSubmitProduct }) {
 
   return (
     <>
-      <Box component="form" onSubmit={(e) => {handleSubmit(e); inputRef.current.focus();}} sx={{ '& > :not(style)': { m: 1, width: '25ch' } }} autoComplete='off'>
+      <Box component="form" onSubmit={(e) => { handleSubmit(e); inputRef.current.focus(); }} sx={{ '& > :not(style)': { m: 1, width: '25ch' } }} autoComplete='off'>
         <Typography variant="h5" gutterBottom>Add Product</Typography>
+        <TextField
+          select
+          id="outlined-select-purchaser"
+          name="purchaser"
+          label="Purchaser"
+          size="small"
+          placeholder="None"
+          defaultValue=""
+          disabled={members.length < 1}
+        >
+          {members.map((member) => (
+            <MenuItem key={member} value={member}>
+              {member}
+            </MenuItem>
+          ))}
+        </TextField>
         <TextField
           required
           id="outlined-label"
