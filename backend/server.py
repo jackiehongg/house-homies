@@ -33,6 +33,7 @@ users = db.users
 
 """
 User Account Endpoints
+GET /users/<user>/receipts
 """
 
 @app.get("/users/<user>/receipts")
@@ -42,42 +43,6 @@ def get_user_receipts(user):
         return json.loads(json_util.dumps(cursor))
     except IndexError:
         return 'No receipts found for user'
-
-@app.post("/login")
-def login_account():
-
-    try:
-        print(request.json)
-        username = request.json["username"]
-        password = request.json["password"]
-
-        if password:
-            cursor = users.find({'username': username, 'password': password})
-        else:
-            cursor = users.find({'username': username})
-
-        return json.loads(json_util.dumps(cursor[0]))
-    except IndexError:
-        return 'Username/Password combination not found', 400
-
-@app.post("/register")
-def register_account():
-    username = request.json["username"]
-    password = request.json["password"]
-
-    cursor = users.find({"username": username})
-    if len(list(cursor)) > 0:
-        return 'Account already exists', 409
-    
-    cursor = users.insert_one(
-        {
-            "username": username,
-            "password": password,
-            "receipts": []
-        }
-    )
-    cursor = users.find({"_id": cursor.inserted_id})
-    return json.loads(json_util.dumps(cursor[0]))
 
 """
 Receipt Endpoints

@@ -52,11 +52,13 @@ function App() {
 		const jwt_token = cookies.get('jwt_auth')
 		if (jwt_token) login(jwt_token)
 
+		const title = cookies.get('title')
 		const members = cookies.get('members')
 		const products = cookies.get('products')
 		const checks = cookies.get('checks')
 		const receiptID = cookies.get('receiptid')
 		
+		if (title) setTitle(title)
 		if (members) setMembers(members)
 		if (products) setProducts(products)
 		if (checks) setChecks(checks)
@@ -194,6 +196,7 @@ function App() {
 			"debt": debt,
 		}
 
+		cookies.set('title', title, {})
 		cookies.set('members', members, {})
 		cookies.set('products', products, {})
 		cookies.set('checks', checks, {})
