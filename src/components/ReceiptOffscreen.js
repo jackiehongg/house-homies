@@ -1,19 +1,34 @@
 import Button from 'react-bootstrap/Button';
 import Offcanvas from 'react-bootstrap/Offcanvas';
 import axios from 'axios';
+import { useEffect, useState } from 'react';
+import Typography from '@mui/material/Typography';
 
 export default function ReceiptOffscreen({ show, handleToggleShow, user, handleLoadReceipt }) {
 
+  const [receiptList, setReceiptList] = useState([])
+
   const handleUserReceipts = (e, id) => {
     e.preventDefault()
-    axios.get(id + '/receipts')
+    axios.get('/receipts/' + id)
+      .then(function (response) {
+        const data = response.data
+        handleLoadReceipt(data)
+      }).catch(function (error) {
+        console.log(error)
+      });
+  }
+
+  useEffect(() => {
+    if (user && show) {
+      axios.get('/users/' + user.sub + '/receipts')
         .then(function (response) {
-          const data = response.data
-          handleLoadReceipt(data)
+          setReceiptList(response.data)
         }).catch(function (error) {
           console.log(error)
         });
-  }
+    }
+  }, [user, show])
 
   return (
     <>
@@ -22,15 +37,15 @@ export default function ReceiptOffscreen({ show, handleToggleShow, user, handleL
           <Offcanvas.Title>Past Receipts</Offcanvas.Title>
         </Offcanvas.Header>
         <Offcanvas.Body>
-          {(user && user['receipts']) ? (
-            user['receipts'].map((receipt) => (
+          {(receiptList) ? (
+            (receiptList).map((receipt) => (
               <li>
-                {receipt['$oid']}
-                <Button variant='primary' onClick={(e) => handleUserReceipts(e, receipt['$oid'])}>View</Button>
+                <Typography variant='span'>{receipt['title']} </Typography>
+                <Button variant='primary' size='small' onClick={(e) => handleUserReceipts(e, receipt['_id']['$oid'])}>View</Button>
               </li>
             ))
           ) :
-            ('No user')
+            ('No receipts found')
           }
         </Offcanvas.Body>
       </Offcanvas>

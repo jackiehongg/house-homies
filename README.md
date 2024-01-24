@@ -1,20 +1,18 @@
 # HouseHomies
-HouseHomies is a tool for users to split a bill amongst each other in a group. The webapp will replace a Google Sheets maintained by myself that is currently serving the aforementioned purpose. This implementation improves upon the Google Sheets version by providing more flexibility with the layout such adding/removing members, adding/removing bill items, avoiding formatting issues as well as offering a welcoming appearance. By using Househomies, users can maintain their own bills with their own groups without assistance.
-Hosted at https://house-homies.onrender.com. 
+HouseHomies is a tool for a group of users to split a bill amongst each other in a group. The webapp replaces a Google Sheets maintained by myself that is currently serving the aforementioned purpose. This implementation streamlines the Google Sheets version by providing more flexibility with the layout such as adding/removing members, adding/removing bill items, avoiding formatting issues as well as offering a welcoming appearance. By using Househomies, new users can create and manage bills within their own groups without my assistance.  
+<br>Hosted at https://house-homies.onrender.com. 
 
 ## Features and Roadmap
-- [x] Add group members and billable items
-- [x] Claim billable items for involved members
+- [x] Add/remove group members and items
+- [x] Each Member can claim items
 - [x] Calculate amounts owed by each member for their claimed items
     - [x] Weighted claims for uneven shares
-    - [x] Consider multiple purchasers
-- [x] Remove members or billable items
-- [x] Basic accounts
-    - [x] Save and load past bills
+    - [x] Support for multiple purchasers under one receipt
+- [x] Google Accounts
+    - [x] Save and load past receipts
     - [ ] Spending dashboard
+- [ ] User groups
 - [ ] Sorting
-- [ ] Considerations for accessibility
-- [ ] Mobile improvements
 - [x] Share link
 
 ## Technologies

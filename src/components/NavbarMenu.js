@@ -1,38 +1,49 @@
+import { GoogleLogin } from '@react-oauth/google';
 import { useState } from 'react'
-import Container from 'react-bootstrap/Container';
-import Navbar from 'react-bootstrap/Navbar';
-import Nav from 'react-bootstrap/Nav';
-import Login from './Login';
+
+import * as React from 'react';
+import AppBar from '@mui/material/AppBar';
+import Box from '@mui/material/Box';
+import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+
 import ReceiptOffscreen from './ReceiptOffscreen';
 
-export default function NavbarMenu({ setUser, user, handleLoadReceipt }) {
 
-    const [showLogin, setShowLogin] = useState(false);
+
+
+export default function NavbarMenu({ user, handleLoadReceipt, login }) {
+
     const [showOffscreen, setShowOffscreen] = useState(false);
-
-    const handleToggleShowLogin = () => setShowLogin(!showLogin);
     const handleToggleShowOffscreen = () => setShowOffscreen(!showOffscreen);
-    const handleLogout = () => setUser(null)
+
+
 
     return (
         <>
-            <Navbar expand="lg" className="bg-body-tertiary">
-                <Container>
-                    <Navbar.Brand>HouseHomies</Navbar.Brand>
+            <Box sx={{ flexGrow: 1 }}>
+                <AppBar position="static">
+                    <Toolbar>
+                        <Typography variant="h5">HouseHomies</Typography>
+                        {/* <Button variant="primary">Home</Button> */}
+                        <Button variant="primary" onClick={handleToggleShowOffscreen}>Receipts</Button>
 
-                    <Navbar.Toggle aria-controls="basic-navbar-nav" />
-                    <Navbar.Collapse id="basic-navbar-nav">
-                        <Nav className="me-auto">
-                            <Nav.Link onClick={handleToggleShowOffscreen}>Receipts</Nav.Link>
-                            <Nav.Link onClick={handleToggleShowLogin}>{user ? 'Logged in as ' + user['username'] : 'Login'}</Nav.Link>
-                            <Nav.Link onClick={handleLogout}>{user ? 'Logout' : ''}</Nav.Link>
-                        </Nav>
-                    </Navbar.Collapse>
-                </Container>
-            </Navbar>
+                        <Box sx={{ flexGrow: 1 }}></Box>
+                        <GoogleLogin
+                            onSuccess={credentialResponse => {
+                                console.log('Login Success')
+                                login(credentialResponse.credential);
+                            }}
+                            onError={() => {
+                                console.log('Login Failed')
+                            }}
+                        />                  
+                        </Toolbar>
+                </AppBar>
+            </Box>
 
-            <Login setUser={setUser} show={showLogin} handleToggleShow={handleToggleShowLogin} />
-            <ReceiptOffscreen show={showOffscreen} handleToggleShow={handleToggleShowOffscreen} user={user} handleLoadReceipt={handleLoadReceipt}/>
+            <ReceiptOffscreen show={showOffscreen} handleToggleShow={handleToggleShowOffscreen} user={user} handleLoadReceipt={handleLoadReceipt} />
         </>
     );
 }

@@ -31,6 +31,18 @@ db = client.househomies
 receipts = db.receipts
 users = db.users
 
+"""
+User Account Endpoints
+"""
+
+@app.get("/users/<user>/receipts")
+def get_user_receipts(user):
+    try:
+        cursor = receipts.find({'owner': user})
+        return json.loads(json_util.dumps(cursor))
+    except IndexError:
+        return 'No receipts found for user'
+
 @app.post("/login")
 def login_account():
 
@@ -67,9 +79,52 @@ def register_account():
     cursor = users.find({"_id": cursor.inserted_id})
     return json.loads(json_util.dumps(cursor[0]))
 
-@app.put("/<id>/save_changes")
+"""
+Receipt Endpoints
+GET /receipts/<id> 
+POST /receipts
+PUT /receipts/<id>
+"""
+@app.get("/receipts/<id>")
+def get_receipt(id):
+    cursor = receipts.find(
+        {"_id": ObjectId(id)}
+    )
+    return json.loads(json_util.dumps(cursor[0]))
+
+@app.post("/receipts")
+def save_receipt():
+    owner = request.json['owner']
+    title = request.json['title']
+    members = request.json["members"]
+    products = request.json["products"]
+    checks = request.json["checks"]
+    debt = request.json["debt"]
+    res = receipts.insert_one(
+        {
+            "owner": owner,
+            "title": title,
+            "members": members,
+            "products": products,
+            "checks": checks,
+            "debt": debt,
+        }
+    )
+
+    print(owner)
+    if owner:
+        print('owner')
+        users.update_one(
+            {"username": owner},
+            {'$push': {'receipts': res.inserted_id}}
+        )
+
+    return str(res.inserted_id)
+
+@app.put("/receipts/<id>")
 def update_receipt(id):
-    username = request.json['username']
+    owner = request.json['owner']
+    title = request.json['title']
     members = request.json["members"]
     products = request.json["products"]    
     checks = request.json["checks"]
@@ -78,6 +133,7 @@ def update_receipt(id):
         {"_id": ObjectId(id)},
         {
             "$set": {
+                "title": title,
                 "members": members,
                 "products": products,
                 "checks": checks,
@@ -88,47 +144,18 @@ def update_receipt(id):
     if not res.acknowledged:
         return 'Update failed', 409
     
-    if username:
+    if owner:
         users.update_one(
-            {"username": username},
+            {"username": owner},
             {'$addToSet': {'receipts': ObjectId(id)}}
         )
 
     return id
 
-@app.post("/save_changes")
-def save_receipt():
-    username = request.json['username']
-    members = request.json["members"]
-    products = request.json["products"]
-    checks = request.json["checks"]
-    debt = request.json["debt"]
-    res = receipts.insert_one(
-        {
-            "members": members,
-            "products": products,
-            "checks": checks,
-            "debt": debt,
-        }
-    )
 
-    print(username)
-    if username:
-        print('username')
-        users.update_one(
-            {"username": username},
-            {'$push': {'receipts': res.inserted_id}}
-        )
-
-    return str(res.inserted_id)
-
-@app.get("/<id>/receipts")
-def get_receipt(id):
-    cursor = receipts.find(
-        {"_id": ObjectId(id)}
-    )
-    return json.loads(json_util.dumps(cursor[0]))
-
+"""
+Default
+"""
 @app.route('/')
 def default():
     return 'HouseHomies-backend'

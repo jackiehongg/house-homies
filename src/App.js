@@ -1,3 +1,6 @@
+import Cookies from 'universal-cookie';
+import { jwtDecode } from "jwt-decode";
+
 import { useEffect, useState } from "react";
 import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
@@ -5,6 +8,7 @@ import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import { disableReactDevTools } from '@fvilers/disable-react-devtools';
 
+import Title from "./components/Title";
 import MemberForm from "./components/MemberForm";
 import ProductForm from "./components/ProductForm";
 import ProductClaim from "./components/ProductClaim";
@@ -14,8 +18,8 @@ import Debts from './components/Debts';
 
 if (process.env.NODE_ENV === 'production') disableReactDevTools()
 
-
 function App() {
+	const [title, setTitle] = useState('New Receipt')
 	const [members, setMembers] = useState([]);
 	const [products, setProducts] = useState([]);
 	const [checks, setChecks] = useState({});
@@ -32,13 +36,36 @@ function App() {
 	const handleShowDebts = () => setShowDebts(true);
 	const handleCloseDebts = () => setShowDebts(false);
 
+	const cookies = new Cookies();
 	const base_url = process.env.NODE_ENV === 'production' ? 'https://house-homies.onrender.com' : 'http://localhost:3000'
 	const URLparams = new URLSearchParams(window.location.search)
 	const URLreceiptid = URLparams.get('receiptid')
 
+	const login = (jwt_token) => {
+		const jwt_decoded = jwtDecode(jwt_token)
+		setUser(jwt_decoded)
+		cookies.set('jwt_auth', jwt_token, {})
+		
+	}
+
+	useEffect(() => {
+		const jwt_token = cookies.get('jwt_auth')
+		if (jwt_token) login(jwt_token)
+
+		const members = cookies.get('members')
+		const products = cookies.get('products')
+		const checks = cookies.get('checks')
+		const receiptID = cookies.get('receiptid')
+		
+		if (members) setMembers(members)
+		if (products) setProducts(products)
+		if (checks) setChecks(checks)
+		if (receiptID) setReceiptID(receiptID)
+	}, [])
+
 	useEffect(() => {
 		if (URLreceiptid) {
-			axios.get(URLreceiptid + '/receipts')
+			axios.get('/receipts/' + URLreceiptid)
 				.then(function (response) {
 					const data = response.data
 					handleLoadReceipt(data)
@@ -49,6 +76,7 @@ function App() {
 	}, [URLreceiptid]);
 
 	const handleLoadReceipt = (data) => {
+		setTitle(data['title'])
 		setMembers(data['members'])
 		setProducts(data['products'])
 		setChecks(data['checks'])
@@ -60,7 +88,7 @@ function App() {
 		e.preventDefault();
 		const member = (e.target.member.value).charAt(0).toUpperCase() + (e.target.member.value).slice(1)
 		setMembers([...members, member]);
-		const newCheck = {...checks}
+		const newCheck = { ...checks }
 		for (const product of products) {
 			newCheck[member + product['id']] = 0
 		}
@@ -70,7 +98,7 @@ function App() {
 	const handleDeleteMember = (e, member) => {
 		e.preventDefault();
 
-		const newChecks = { ...checks }		
+		const newChecks = { ...checks }
 		for (const product of products) {
 			if (product['purchaser'] === member) {
 				for (const member of members) {
@@ -81,7 +109,7 @@ function App() {
 			}
 		}
 
-		const newProducts = products.filter((product) => {return product['purchaser'] !== member})
+		const newProducts = products.filter((product) => { return product['purchaser'] !== member })
 
 		const newMembers = [...members]
 		newMembers.splice(newMembers.indexOf(member), 1)
@@ -118,8 +146,8 @@ function App() {
 	const handleClaimSubmit = (e) => {
 		e.preventDefault();
 		// members: [m1, m2, m3, ...]
-		// products: [{id: pid, label: l1, value: v1, purchaser, m1}]
-		// checks: {m1+id: weight}
+		// products: [{id: pid, label: l1, value: v1, purchaser, m1}, ...]
+		// checks: {m1+id: weight, ...}
 
 
 		const newDebt = {}
@@ -151,24 +179,31 @@ function App() {
 				newDebt[purchaser][member] = parseFloat(newDebt[purchaser][member].toFixed(2))
 			}
 		}
-		
+
 		setDebt(newDebt)
 		handleShowDebts()
 	};
 
 	const handleSaveChanges = async (e) => {
 		const body = {
-			"username": user ? user['username'] : null,
+			"owner": user ? user.sub : null,
+			"title": title,
 			"members": members,
 			"products": products,
 			"checks": checks,
 			"debt": debt,
 		}
 
+		cookies.set('members', members, {})
+		cookies.set('products', products, {})
+		cookies.set('checks', checks, {})
+		cookies.set('receiptid', receiptID, {})
+		cookies.set('title', title, {})
+
 		// If saving existing receipt else saving new receipt
 		let id = null
 		if (receiptID) {
-			await axios.put(receiptID + '/save_changes', body)
+			await axios.put('/receipts/' + receiptID, body)
 				.then(function (response) {
 					id = response.data
 					setReceiptID(id)
@@ -176,7 +211,7 @@ function App() {
 					console.log(error)
 				});
 		} else {
-			await axios.post('/save_changes', body)
+			await axios.post('/receipts', body)
 				.then(function (response) {
 					id = response.data
 					setReceiptID(id)
@@ -188,13 +223,30 @@ function App() {
 	}
 
 	const handleShare = (e) => {
+		handleSaveChanges()
 		setShareLink(base_url + '/?receiptid=' + receiptID)
 		handleShowShareLink()
 	}
 
+	const handleReset = (e) => {
+		setTitle('New Receipt')
+		setMembers([])
+		setProducts([])
+		setChecks({})
+		setDebt({})
+		setReceiptID(null)
+
+		cookies.remove('title')
+		cookies.remove('members')
+		cookies.remove('products')
+		cookies.remove('checks')
+		cookies.remove('receiptid')
+	}
+
 	return (
 		<Container>
-			<NavbarMenu setUser={setUser} user={user} handleLoadReceipt={handleLoadReceipt} />
+			<NavbarMenu user={user} handleLoadReceipt={handleLoadReceipt} login={login} />
+			<Title title={title} setTitle={setTitle}/>
 			<MemberForm members={members} debt={debt} handleSubmitMember={handleSubmitMember} handleDeleteMember={handleDeleteMember} />
 			<ProductForm handleSubmitProduct={handleSubmitProduct} members={members} />
 			<ProductClaim members={members} products={products} checks={checks} setChecks={setChecks} handleDeleteProduct={handleDeleteProduct} />
@@ -203,6 +255,8 @@ function App() {
 			<Button variant='contained' onClick={handleClaimSubmit}>Split</Button>
 			<Button variant='outlined' onClick={handleSaveChanges} >Save Changes</Button>
 			<Button variant='outlined' onClick={handleShare} disabled={receiptID ? false : true}>Share</Button>
+			<Button variant='outlined' color="error" onClick={handleReset}>Create New Without Saving</Button>
+
 
 			<Debts members={members} products={products} debt={debt} showDebts={showDebts} handleCloseDebts={handleCloseDebts} />
 			<ShareLink shareLink={shareLink} showShareLink={showShareLink} handleCloseShareLink={handleCloseShareLink} />
