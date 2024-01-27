@@ -1,12 +1,13 @@
 import Cookies from 'universal-cookie';
-import { jwtDecode } from "jwt-decode";
+import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
+import { disableReactDevTools } from '@fvilers/disable-react-devtools';
 
 import { useEffect, useState } from "react";
 import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
-import axios from 'axios';
-import { v4 as uuidv4 } from 'uuid';
-import { disableReactDevTools } from '@fvilers/disable-react-devtools';
+import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack'
 
 import Title from "./components/Title";
 import MemberForm from "./components/MemberForm";
@@ -38,26 +39,17 @@ function App() {
 
 	const cookies = new Cookies();
 	const base_url = process.env.NODE_ENV === 'production' ? 'https://house-homies.onrender.com' : 'http://localhost:3000'
+	// document.body.style.backgroundColor = '#f5f5f5'
 	const URLparams = new URLSearchParams(window.location.search)
 	const URLreceiptid = URLparams.get('receiptid')
 
-	const login = (jwt_token) => {
-		const jwt_decoded = jwtDecode(jwt_token)
-		setUser(jwt_decoded)
-		cookies.set('jwt_auth', jwt_token, {})
-		
-	}
-
 	useEffect(() => {
-		const jwt_token = cookies.get('jwt_auth')
-		if (jwt_token) login(jwt_token)
-
 		const title = cookies.get('title')
 		const members = cookies.get('members')
 		const products = cookies.get('products')
 		const checks = cookies.get('checks')
 		const receiptID = cookies.get('receiptid')
-		
+
 		if (title) setTitle(title)
 		if (members) setMembers(members)
 		if (products) setProducts(products)
@@ -129,7 +121,6 @@ function App() {
 		const newChecks = {}
 		members.forEach((member) => { newChecks[member + newItem['id']] = 0 });
 		setChecks(Object.assign({}, checks, newChecks))
-
 	}
 
 	const handleDeleteProduct = (e, targetID) => {
@@ -145,12 +136,11 @@ function App() {
 		setChecks(newChecks)
 	}
 
-	const handleClaimSubmit = (e) => {
+	const handleCalculateDebt = (e) => {
 		e.preventDefault();
 		// members: [m1, m2, m3, ...]
 		// products: [{id: pid, label: l1, value: v1, purchaser, m1}, ...]
 		// checks: {m1+id: weight, ...}
-
 
 		const newDebt = {}
 
@@ -225,12 +215,6 @@ function App() {
 
 	}
 
-	const handleShare = (e) => {
-		handleSaveChanges()
-		setShareLink(base_url + '/?receiptid=' + receiptID)
-		handleShowShareLink()
-	}
-
 	const handleReset = (e) => {
 		setTitle('New Receipt')
 		setMembers([])
@@ -246,24 +230,34 @@ function App() {
 		cookies.remove('receiptid')
 	}
 
+	const handleShare = (e) => {
+		handleSaveChanges()
+		setShareLink(base_url + '/?receiptid=' + receiptID)
+		handleShowShareLink()
+	}
+
 	return (
-		<Container>
-			<NavbarMenu user={user} handleLoadReceipt={handleLoadReceipt} login={login} />
-			<Title title={title} setTitle={setTitle}/>
-			<MemberForm members={members} debt={debt} handleSubmitMember={handleSubmitMember} handleDeleteMember={handleDeleteMember} />
-			<ProductForm handleSubmitProduct={handleSubmitProduct} members={members} />
-			<ProductClaim members={members} products={products} checks={checks} setChecks={setChecks} handleDeleteProduct={handleDeleteProduct} />
+		<Box>
+			<NavbarMenu user={user} setUser={setUser} handleLoadReceipt={handleLoadReceipt} cookies={cookies}/>
+			<Container>
+				<Title title={title} setTitle={setTitle} />
+				<MemberForm members={members} debt={debt} handleSubmitMember={handleSubmitMember} handleDeleteMember={handleDeleteMember} />
+				<ProductForm handleSubmitProduct={handleSubmitProduct} members={members} />
+				<ProductClaim members={members} products={products} checks={checks} setChecks={setChecks} handleDeleteProduct={handleDeleteProduct} />
 
-			<br></br>
-			<Button variant='contained' onClick={handleClaimSubmit}>Split</Button>
-			<Button variant='outlined' onClick={handleSaveChanges} >Save Changes</Button>
-			<Button variant='outlined' onClick={handleShare} disabled={receiptID ? false : true}>Share</Button>
-			<Button variant='outlined' color="error" onClick={handleReset}>Create New Without Saving</Button>
+				<br></br>
+				<Stack direction="row" spacing={1}>
+					<Button variant='contained' onClick={handleCalculateDebt}>Split</Button>
+					<Button variant='outlined' onClick={handleSaveChanges} >Save Changes</Button>
+					<Button variant='outlined' onClick={handleShare} disabled={receiptID ? false : true}>Share</Button>
+					<Box sx={{flexGrow: 1}}></Box>
+					<Button variant='outlined' color="warning" onClick={handleReset}>Create New Without Saving</Button>					
+				</Stack>
 
-
-			<Debts members={members} products={products} debt={debt} showDebts={showDebts} handleCloseDebts={handleCloseDebts} />
-			<ShareLink shareLink={shareLink} showShareLink={showShareLink} handleCloseShareLink={handleCloseShareLink} />
-		</Container>
+				<Debts members={members} products={products} debt={debt} showDebts={showDebts} handleCloseDebts={handleCloseDebts} />
+				<ShareLink shareLink={shareLink} showShareLink={showShareLink} handleCloseShareLink={handleCloseShareLink} />
+			</Container>
+		</Box>
 	);
 }
 
