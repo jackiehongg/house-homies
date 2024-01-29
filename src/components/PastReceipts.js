@@ -10,6 +10,7 @@ import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
+import DialogContentText from '@mui/material/DialogContentText';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
@@ -46,13 +47,13 @@ export default function PastReceipts({ showPastReceipts, handleShowPastReceipts,
 
     return (
         <>
-            <Dialog open={showPastReceipts} onClose={() => handleShowPastReceipts(false)}>
+            <Dialog open={showPastReceipts} onClose={() => handleShowPastReceipts(false)} fullWidth={true} maxWidth={'xs'}>
                 <DialogTitle id="alert-dialog-title">
                     <Typography><b>Past Receipts</b></Typography>
                 </DialogTitle>
                 <DialogContent>
-                    {user ? (<Box>
-                        {(receiptList) ? (
+                    {user ? (<Box display="flex" justifyContent="center" alignItems="center">
+                        {(receiptList.length > 0) ? (
                             (receiptList).map((receipt) => (
                                 <List key={receipt['_id']['$oid']} sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
                                     <Stack direction="row" spacing={6}>
@@ -68,11 +69,11 @@ export default function PastReceipts({ showPastReceipts, handleShowPastReceipts,
                                     </Stack>
                                 </List>
                             ))
-                        ) :
-                            ('No receipts found')
-                        }
+                        ) : (
+                        <DialogContentText>No receipts found! Try saving a receipt first, then finding it here.</DialogContentText>
+                        )}
                     </Box>) : (
-                        <Typography>Logging in with your Google account is required to save receipts and load ones from the past.</Typography>
+                        <DialogContentText>Logging in with your Google account is required to save receipts and load ones from the past.</DialogContentText>
                     )
                     }
                 </DialogContent>
