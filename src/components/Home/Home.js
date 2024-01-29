@@ -36,7 +36,7 @@ export default function Home({ changePage }) {
                     <Grid item xs={12} sm={6} md={4}>
                         <FeatureCard
                             heading={'Splitting the Bill'}
-                            body={'Group members can check off expenses their involved in'}
+                            body={'Group members can check off expenses they are involved in'}
                             image={"/images/SplittingTheBill.jpg"} />
                     </Grid>
                     <Grid item xs={12} sm={6} md={4}>
