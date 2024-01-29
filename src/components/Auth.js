@@ -40,7 +40,7 @@ export default function Auth({ user, setUser, cookies }) {
                         <>
                             <Button {...bindTrigger(popupState)}>
                                 <Chip
-                                    avatar={<Avatar alt={user.name} src={user.picture} />}
+                                    avatar={<Avatar src={user.picture} alt={user.name}/>}
                                     label={user.given_name}
                                     color='primary'
                                     variant="filled"

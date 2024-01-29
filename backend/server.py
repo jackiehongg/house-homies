@@ -7,6 +7,7 @@ from bson.objectid import ObjectId
 from bson import json_util
 from os import getenv
 from dotenv import load_dotenv
+from datetime import datetime
 
 # Initializing flask app
 app = Flask(__name__)
@@ -73,6 +74,7 @@ def save_receipt():
             "products": products,
             "checks": checks,
             "debt": debt,
+            "date": datetime.now()
         }
     )
 

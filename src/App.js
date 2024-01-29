@@ -9,6 +9,7 @@ import Container from '@mui/material/Container';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack'
 
+import Home from "./components/Home/Home"
 import Title from "./components/Title";
 import MemberForm from "./components/MemberForm";
 import ProductForm from "./components/ProductForm";
@@ -16,19 +17,22 @@ import ProductClaim from "./components/ProductClaim";
 import NavbarMenu from './components/NavbarMenu';
 import ShareLink from './components/ShareLink';
 import Debts from './components/Debts';
+import PastReceipts from './components/PastReceipts';
 
 if (process.env.NODE_ENV === 'production') disableReactDevTools()
 
 function App() {
+	const [page, setPage] = useState('home')
 	const [title, setTitle] = useState('New Receipt')
-	const [members, setMembers] = useState([]);
-	const [products, setProducts] = useState([]);
-	const [checks, setChecks] = useState({});
+	const [members, setMembers] = useState([])
+	const [products, setProducts] = useState([])
+	const [checks, setChecks] = useState({})
 	const [debt, setDebt] = useState({})
-	const [showDebts, setShowDebts] = useState(false);
-	const [showShareLink, setShowShareLink] = useState(false);
-	const [shareLink, setShareLink] = useState(null);
 	const [receiptID, setReceiptID] = useState(null)
+	const [showDebts, setShowDebts] = useState(false)
+	const [showShareLink, setShowShareLink] = useState(false)
+	const [showPastReceipts, setShowPastReceipts] = useState(false)
+	const [shareLink, setShareLink] = useState(null)
 	const [user, setUser] = useState(null)
 
 	const handleShowShareLink = () => setShowShareLink(true);
@@ -68,6 +72,10 @@ function App() {
 				});
 		}
 	}, [URLreceiptid]);
+
+	const changePage = (newPage) => {
+		setPage(newPage)
+	}
 
 	const handleLoadReceipt = (data) => {
 		setTitle(data['title'])
@@ -230,33 +238,45 @@ function App() {
 		cookies.remove('receiptid')
 	}
 
-	const handleShare = (e) => {
+	const handleShare = () => {
 		handleSaveChanges()
 		setShareLink(base_url + '/?receiptid=' + receiptID)
 		handleShowShareLink()
 	}
 
+	const handleShowPastReceipts = (bool) => {
+		setShowPastReceipts(bool)
+	}
+
 	return (
 		<Box>
-			<NavbarMenu user={user} setUser={setUser} handleLoadReceipt={handleLoadReceipt} cookies={cookies}/>
-			<Container>
-				<Title title={title} setTitle={setTitle} />
-				<MemberForm members={members} debt={debt} handleSubmitMember={handleSubmitMember} handleDeleteMember={handleDeleteMember} />
-				<ProductForm handleSubmitProduct={handleSubmitProduct} members={members} />
-				<ProductClaim members={members} products={products} checks={checks} setChecks={setChecks} handleDeleteProduct={handleDeleteProduct} />
+			<NavbarMenu user={user} setUser={setUser} handleShowPastReceipts={handleShowPastReceipts} handleLoadReceipt={handleLoadReceipt} changePage={changePage} cookies={cookies} />
+			{page === 'home' && (
+				<Container>
+					<Home changePage={changePage} />
+				</Container>
+			)}
+			{page === 'receipt' && (
+				<Container>
+					<Title title={title} setTitle={setTitle} />
+					<MemberForm members={members} debt={debt} handleSubmitMember={handleSubmitMember} handleDeleteMember={handleDeleteMember} />
+					<ProductForm handleSubmitProduct={handleSubmitProduct} members={members} />
+					<ProductClaim members={members} products={products} checks={checks} setChecks={setChecks} handleDeleteProduct={handleDeleteProduct} />
 
-				<br></br>
-				<Stack direction="row" spacing={1}>
-					<Button variant='contained' onClick={handleCalculateDebt}>Split</Button>
-					<Button variant='outlined' onClick={handleSaveChanges} >Save Changes</Button>
-					<Button variant='outlined' onClick={handleShare} disabled={receiptID ? false : true}>Share</Button>
-					<Box sx={{flexGrow: 1}}></Box>
-					<Button variant='outlined' color="warning" onClick={handleReset}>Create New Without Saving</Button>					
-				</Stack>
+					<br></br>
+					<Stack direction="row" spacing={1}>
+						<Button variant='contained' onClick={handleCalculateDebt}>Split</Button>
+						<Button variant='outlined' onClick={handleSaveChanges} >Save Changes</Button>
+						<Button variant='outlined' onClick={handleShare} disabled={receiptID ? false : true}>Share</Button>
+						<Box sx={{ flexGrow: 1 }}></Box>
+						<Button variant='outlined' color="warning" onClick={handleReset}>Create New Without Saving</Button>
+					</Stack>
 
-				<Debts members={members} products={products} debt={debt} showDebts={showDebts} handleCloseDebts={handleCloseDebts} />
-				<ShareLink shareLink={shareLink} showShareLink={showShareLink} handleCloseShareLink={handleCloseShareLink} />
-			</Container>
+					<Debts members={members} products={products} debt={debt} showDebts={showDebts} handleCloseDebts={handleCloseDebts} />
+					<PastReceipts showPastReceipts={showPastReceipts} handleShowPastReceipts={handleShowPastReceipts} user={user} handleLoadReceipt={handleLoadReceipt}/>
+					<ShareLink shareLink={shareLink} showShareLink={showShareLink} handleCloseShareLink={handleCloseShareLink} />
+				</Container>
+			)}
 		</Box>
 	);
 }
