@@ -4,7 +4,7 @@ import TaskAlt from '@mui/icons-material/TaskAlt'
 import AddTask from '@mui/icons-material/AddTask'
 import IconButton from '@mui/material/IconButton'
 
-export default function Checkbox({ name, state, handleClick }) {
+export default function Checkbox({ name, state, handleClaim }) {
     let icon = null
     if (state === 1)
         icon = <TaskAlt />
@@ -14,7 +14,7 @@ export default function Checkbox({ name, state, handleClick }) {
         icon = <RadioButtonUnchecked />
 
     return (
-        <IconButton name={name} onClick={handleClick}>
+        <IconButton name={name} onClick={handleClaim}>
             {icon}
         </IconButton>
 

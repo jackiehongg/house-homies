@@ -1,23 +1,16 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import dayjs from 'dayjs';
+import PastReceiptCard from './PastReceiptCard';
 
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
-
-import Avatar from '@mui/material/Avatar';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContentText from '@mui/material/DialogContentText';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemText from '@mui/material/ListItemText';
-import ListItemAvatar from '@mui/material/ListItemAvatar';
-import ReceiptIcon from '@mui/icons-material/Receipt';
-import Stack from '@mui/material/Stack';
 
+import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 export default function PastReceipts({ showPastReceipts, handleShowPastReceipts, user, handleLoadReceipt }) {
@@ -36,7 +29,7 @@ export default function PastReceipts({ showPastReceipts, handleShowPastReceipts,
 
     useEffect(() => {
         if (user && showPastReceipts) {
-            axios.get('/users/' + user.sub + '/receipts')
+            axios.get('/users/' + user.email + '/receipts')
                 .then(function (response) {
                     setReceiptList(response.data)
                 }).catch(function (error) {
@@ -54,23 +47,14 @@ export default function PastReceipts({ showPastReceipts, handleShowPastReceipts,
                 <DialogContent>
                     {user ? (<Box display="flex" justifyContent="center" alignItems="center">
                         {(receiptList.length > 0) ? (
-                            (receiptList).map((receipt) => (
-                                <List key={receipt['_id']['$oid']} sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
-                                    <Stack direction="row" spacing={6}>
-                                        <ListItem>
-                                            <ListItemAvatar>
-                                                <Avatar>
-                                                    <ReceiptIcon />
-                                                </Avatar>
-                                            </ListItemAvatar>
-                                            <ListItemText primary={receipt['title']} secondary={dayjs(receipt['date']['$date']).format('MMM D, YYYY')} />
-                                        </ListItem>
-                                        <Button sx={{ maxHeight: '50%' }} variant='contained' size='medium' onClick={(e) => { handleUserReceipts(e, receipt['_id']['$oid']); handleShowPastReceipts(false) }}>View</Button>
-                                    </Stack>
-                                </List>
-                            ))
+                            <Stack spacing={2}>
+                            {(receiptList).map((receipt, idx) => (
+                                <PastReceiptCard key={idx} receipt={receipt} handleUserReceipts={handleUserReceipts} handleShowPastReceipts={handleShowPastReceipts}/>
+                            ))}
+                            </Stack>
+
                         ) : (
-                        <DialogContentText>No receipts found! Try saving a receipt first, then finding it here.</DialogContentText>
+                        <DialogContentText>No receipts found! Try making your first receipt and finding it here.</DialogContentText>
                         )}
                     </Box>) : (
                         <DialogContentText>Logging in with your Google account is required to save receipts and load ones from the past.</DialogContentText>

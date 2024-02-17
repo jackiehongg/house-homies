@@ -13,11 +13,9 @@ else axios.defaults.baseURL = 'https://house-homies-api.onrender.com/';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <React.StrictMode>
     <GoogleOAuthProvider clientId="250752119853-au1j8j4ce349vpnfihimbhire0hjmk1g.apps.googleusercontent.com">
       <App />
     </GoogleOAuthProvider>
-  </React.StrictMode>
 
 );
 

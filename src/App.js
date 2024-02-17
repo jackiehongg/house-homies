@@ -1,8 +1,9 @@
 import Cookies from 'universal-cookie';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
+import ObjectId from 'bson-objectid'
 import { disableReactDevTools } from '@fvilers/disable-react-devtools';
-
+import { socket } from './socket'
 import { useEffect, useState } from "react";
 import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
@@ -22,45 +23,83 @@ import PastReceipts from './components/PastReceipts';
 if (process.env.NODE_ENV === 'production') disableReactDevTools()
 
 function App() {
+	const cookies = new Cookies();
 	const [page, setPage] = useState('home')
 	const [title, setTitle] = useState('New Receipt')
 	const [members, setMembers] = useState([])
 	const [products, setProducts] = useState([])
 	const [checks, setChecks] = useState({})
 	const [debt, setDebt] = useState({})
-	const [receiptID, setReceiptID] = useState(null)
+	const [receiptID, setReceiptID] = useState(cookies.get('receiptid') ? cookies.get('receiptid') : ObjectId().toString())
 	const [showDebts, setShowDebts] = useState(false)
 	const [showShareLink, setShowShareLink] = useState(false)
 	const [showPastReceipts, setShowPastReceipts] = useState(false)
 	const [shareLink, setShareLink] = useState(null)
 	const [user, setUser] = useState(null)
-
+	const [afterInitialLoad, setAfterInitialLoad] = useState(false)
 	const handleShowShareLink = () => setShowShareLink(true);
 	const handleCloseShareLink = () => setShowShareLink(false);
 
 	const handleShowDebts = () => setShowDebts(true);
 	const handleCloseDebts = () => setShowDebts(false);
 
-	const cookies = new Cookies();
 	const base_url = process.env.NODE_ENV === 'production' ? 'https://house-homies.onrender.com' : 'http://localhost:3000'
-	// document.body.style.backgroundColor = '#f5f5f5'
 	const URLparams = new URLSearchParams(window.location.search)
 	const URLreceiptid = URLparams.get('receiptid')
 
+	// Sockets
+	useEffect(() => {
+		socket.emit("join_receipt", receiptID)
+	}, [receiptID])
+
+	useEffect(() => {
+		socket.on('updated_receipt', (data) => {
+			setTitle(data['title'])
+			setMembers(data['members'])
+			setProducts(data['products'])
+			setChecks(data['checks'])
+		})
+	}, [socket])
+
+	// On login sync
+	useEffect(() => {
+		if (afterInitialLoad && user) {
+			axios.put('/users/' + receiptID, { "user": user })
+				.then(function (response) { })
+				.catch(function (error) {
+					console.log(error)
+				});
+		}
+	}, [user])
+
+	// Cookies
 	useEffect(() => {
 		const title = cookies.get('title')
 		const members = cookies.get('members')
 		const products = cookies.get('products')
 		const checks = cookies.get('checks')
-		const receiptID = cookies.get('receiptid')
+		// const receiptID = cookies.get('receiptid')
 
 		if (title) setTitle(title)
 		if (members) setMembers(members)
 		if (products) setProducts(products)
 		if (checks) setChecks(checks)
-		if (receiptID) setReceiptID(receiptID)
+		// if (receiptID) setReceiptID(receiptID)
+
+		setAfterInitialLoad(true)
 	}, [])
 
+	useEffect(() => {
+		if (afterInitialLoad) {
+			cookies.set('title', title, {})
+			cookies.set('members', members, {})
+			cookies.set('products', products, {})
+			cookies.set('checks', checks, {})
+			cookies.set('receiptid', receiptID, {})
+		}
+	}, [title, members, products, checks, receiptID])
+
+	// Use Share Link
 	useEffect(() => {
 		if (URLreceiptid) {
 			axios.get('/receipts/' + URLreceiptid)
@@ -70,6 +109,7 @@ function App() {
 				}).catch(function (error) {
 					console.log(error)
 				});
+			changePage('receipt')
 		}
 	}, [URLreceiptid]);
 
@@ -82,19 +122,28 @@ function App() {
 		setMembers(data['members'])
 		setProducts(data['products'])
 		setChecks(data['checks'])
-		setDebt(data['debt'])
 		setReceiptID(data['_id']['$oid'])
+	}
+
+	// Form Operations
+	const handleTitleChange = (e) => {
+		e.preventDefault()
+		const newTitle = e.target.value
+		setTitle(newTitle)
+		socket.emit('update_receipt', { 'user': user, 'receiptID': receiptID, 'title': newTitle, 'members': members, 'products': products, 'checks': checks })
 	}
 
 	const handleSubmitMember = (e) => {
 		e.preventDefault();
 		const member = (e.target.member.value).charAt(0).toUpperCase() + (e.target.member.value).slice(1)
-		setMembers([...members, member]);
-		const newCheck = { ...checks }
+		const newMembers = [...members, member]
+		setMembers(newMembers);
+		const newChecks = { ...checks }
 		for (const product of products) {
-			newCheck[member + product['id']] = 0
+			newChecks[member + product['id']] = 0
 		}
-		setChecks(newCheck)
+		setChecks(newChecks)
+		socket.emit('update_receipt', { 'user': user, 'receiptID': receiptID, 'title': title, 'members': newMembers, 'products': products, 'checks': newChecks })
 	};
 
 	const handleDeleteMember = (e, member) => {
@@ -119,6 +168,8 @@ function App() {
 		setMembers(newMembers)
 		setProducts(newProducts)
 		setChecks(newChecks)
+
+		socket.emit('update_receipt', { 'user': user, 'receiptID': receiptID, 'title': title, 'members': newMembers, 'products': newProducts, 'checks': newChecks })
 	}
 
 	const handleSubmitProduct = (e) => {
@@ -126,22 +177,40 @@ function App() {
 		const newItem = { 'id': uuidv4(), 'label': e.target.label.value, 'value': parseFloat(e.target.value.value), 'purchaser': e.target.purchaser.value }
 		const newProducts = [...products, newItem]
 		setProducts(newProducts);
-		const newChecks = {}
+		var newChecks = {}
 		members.forEach((member) => { newChecks[member + newItem['id']] = 0 });
-		setChecks(Object.assign({}, checks, newChecks))
+		newChecks = Object.assign({}, checks, newChecks)
+		setChecks(newChecks)
+
+		socket.emit('update_receipt', { 'user': user, 'receiptID': receiptID, 'title': title, 'members': members, 'products': newProducts, 'checks': newChecks })
 	}
 
 	const handleDeleteProduct = (e, targetID) => {
 		e.preventDefault()
 		const newProducts = [...products]
 		const idx = newProducts.findIndex(({ id }) => id === targetID)
-		products.splice(idx, 1)
+		newProducts.splice(idx, 1)
+		setProducts(newProducts)
 
 		const newChecks = { ...checks };
 		for (const member of members) {
 			delete newChecks[member + targetID]
 		}
 		setChecks(newChecks)
+
+		socket.emit('update_receipt', { 'user': user, 'receiptID': receiptID, 'title': title, 'members': members, 'products': newProducts, 'checks': newChecks })
+	}
+
+	const handleClaim = (e) => {
+		const key = e.currentTarget.name
+		const newChecks = { ...checks };
+		if (!(key in newChecks)) newChecks[key] = 0
+		else if (newChecks[key] === 0) newChecks[key] = 1
+		else if (newChecks[key] === 1) newChecks[key] = 2
+		else if (newChecks[key] === 2) newChecks[key] = 0
+
+		setChecks(newChecks);
+		socket.emit('update_receipt', { 'user': user, 'receiptID': receiptID, 'title': title, 'members': members, 'products': products, 'checks': newChecks })
 	}
 
 	const handleCalculateDebt = (e) => {
@@ -184,52 +253,13 @@ function App() {
 		handleShowDebts()
 	};
 
-	const handleSaveChanges = async (e) => {
-		const body = {
-			"owner": user ? user.sub : null,
-			"title": title,
-			"members": members,
-			"products": products,
-			"checks": checks,
-			"debt": debt,
-		}
-
-		cookies.set('title', title, {})
-		cookies.set('members', members, {})
-		cookies.set('products', products, {})
-		cookies.set('checks', checks, {})
-		cookies.set('receiptid', receiptID, {})
-		cookies.set('title', title, {})
-
-		// If saving existing receipt else saving new receipt
-		let id = null
-		if (receiptID) {
-			await axios.put('/receipts/' + receiptID, body)
-				.then(function (response) {
-					id = response.data
-					setReceiptID(id)
-				}).catch(function (error) {
-					console.log(error)
-				});
-		} else {
-			await axios.post('/receipts', body)
-				.then(function (response) {
-					id = response.data
-					setReceiptID(id)
-				}).catch(function (error) {
-					console.log(error)
-				});
-		}
-
-	}
-
 	const handleReset = (e) => {
 		setTitle('New Receipt')
 		setMembers([])
 		setProducts([])
 		setChecks({})
 		setDebt({})
-		setReceiptID(null)
+		setReceiptID(ObjectId().toString())
 
 		cookies.remove('title')
 		cookies.remove('members')
@@ -239,7 +269,6 @@ function App() {
 	}
 
 	const handleShare = () => {
-		handleSaveChanges()
 		setShareLink(base_url + '/?receiptid=' + receiptID)
 		handleShowShareLink()
 	}
@@ -250,7 +279,7 @@ function App() {
 
 	return (
 		<Box>
-			<NavbarMenu user={user} setUser={setUser} handleShowPastReceipts={handleShowPastReceipts} handleLoadReceipt={handleLoadReceipt} changePage={changePage} cookies={cookies} />
+			<NavbarMenu user={user} setUser={setUser} handleShowPastReceipts={handleShowPastReceipts} changePage={changePage} cookies={cookies} />
 			{page === 'home' && (
 				<Container>
 					<Home changePage={changePage} />
@@ -258,22 +287,21 @@ function App() {
 			)}
 			{page === 'receipt' && (
 				<Container>
-					<Title title={title} setTitle={setTitle} />
+					<Title title={title} handleTitleChange={handleTitleChange} />
 					<MemberForm members={members} debt={debt} handleSubmitMember={handleSubmitMember} handleDeleteMember={handleDeleteMember} />
 					<ProductForm handleSubmitProduct={handleSubmitProduct} members={members} />
-					<ProductClaim members={members} products={products} checks={checks} setChecks={setChecks} handleDeleteProduct={handleDeleteProduct} />
+					<ProductClaim members={members} products={products} checks={checks} handleClaim={handleClaim} handleDeleteProduct={handleDeleteProduct} />
 
 					<br></br>
 					<Stack direction="row" spacing={1}>
 						<Button variant='contained' onClick={handleCalculateDebt}>Split</Button>
-						<Button variant='outlined' onClick={handleSaveChanges} >Save Changes</Button>
 						<Button variant='outlined' onClick={handleShare} disabled={receiptID ? false : true}>Share</Button>
 						<Box sx={{ flexGrow: 1 }}></Box>
 						<Button variant='outlined' color="warning" onClick={handleReset}>Create New Without Saving</Button>
 					</Stack>
 
 					<Debts members={members} products={products} debt={debt} showDebts={showDebts} handleCloseDebts={handleCloseDebts} />
-					<PastReceipts showPastReceipts={showPastReceipts} handleShowPastReceipts={handleShowPastReceipts} user={user} handleLoadReceipt={handleLoadReceipt}/>
+					<PastReceipts showPastReceipts={showPastReceipts} handleShowPastReceipts={handleShowPastReceipts} user={user} handleLoadReceipt={handleLoadReceipt} />
 					<ShareLink shareLink={shareLink} showShareLink={showShareLink} handleCloseShareLink={handleCloseShareLink} />
 				</Container>
 			)}
