@@ -9,6 +9,7 @@ from os import getenv
 from dotenv import load_dotenv
 from datetime import datetime
 from colorist import red, green, yellow
+import requests
 
 # Initializing flask app
 app = Flask(__name__)
@@ -20,8 +21,10 @@ FLASK_ENV = getenv('FLASK_ENV')
 if FLASK_ENV == 'production':
     DATABASE_URI = getenv('DATABASE_URI')
     client = MongoClient(DATABASE_URI, server_api=ServerApi('1'))
+    DEBUG = False
 else:
     client = MongoClient()
+    DEBUG = True
     print('connected to dev database')
 
 try:
@@ -189,6 +192,27 @@ Default
 def default():
     return 'HouseHomies-backend'
 
+def get_public_ip():
+    try:
+        response = requests.get('https://api.ipify.org?format=json')
+        if response.status_code == 200:
+            data = response.json()
+            green(f"Fetched public ip as {data['ip']}")
+            return data['ip']
+        else:
+            red(f"Failed to fetch public IP: {response.status_code}")
+            return '0.0.0.0'
+    except Exception as e:
+        red(f"An error occurred: {e}")
+        return '0.0.0.0'
+
+def create_app():
+    app = Flask(__name__)
+    CORS(app, origins=['https://house-homies.onrender.com', 'wss://house-homies.onrender.com', 'http://localhost:3000', 'wss://localhost:3000'])
+    socketio = SocketIO(app, allow_upgrades=False, cors_allowed_origins=['https://house-homies.onrender.com','wss://house-homies.onrender.com', 'http://localhost:3000', 'wss://localhost:3000'])
+    return socketio
+
 # Running app
 if __name__ == "__main__":
-    socketio.run(app, debug=True, port=5000)
+    # app = create_app()
+    socketio.run(app, debug=DEBUG, host='0.0.0.0', port=10000)
