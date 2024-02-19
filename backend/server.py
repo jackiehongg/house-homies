@@ -83,7 +83,8 @@ def handle_receipt_update(data):
 
 """
 User Account Endpoints
-GET /users/<user>/receipts
+GET /users/<user>/receipts - Returns all receipts a user is involved in
+PUT /users/<receiptID> - Add a user to a receipt
 """
 
 @app.get("/users/<email>/receipts")
@@ -109,9 +110,9 @@ def update_receipt_by_user(receiptID):
     
 """
 Receipt Endpoints
-GET /receipts/<id> 
-POST /receipts
-PUT /receipts/<id>
+GET /receipts/<id> - Returns data for a particular receipt by receiptid
+POST /receipts - Create a new receipt
+PUT /receipts/<id> - Update data for a paricular receipt by receiptid
 """
 @app.get("/receipts/<id>")
 def get_receipt(id):
@@ -192,27 +193,6 @@ Default
 def default():
     return 'HouseHomies-backend'
 
-def get_public_ip():
-    try:
-        response = requests.get('https://api.ipify.org?format=json')
-        if response.status_code == 200:
-            data = response.json()
-            green(f"Fetched public ip as {data['ip']}")
-            return data['ip']
-        else:
-            red(f"Failed to fetch public IP: {response.status_code}")
-            return '0.0.0.0'
-    except Exception as e:
-        red(f"An error occurred: {e}")
-        return '0.0.0.0'
-
-def create_app():
-    app = Flask(__name__)
-    CORS(app, origins=['https://house-homies.onrender.com', 'wss://house-homies.onrender.com', 'http://localhost:3000', 'wss://localhost:3000'])
-    socketio = SocketIO(app, allow_upgrades=False, cors_allowed_origins=['https://house-homies.onrender.com','wss://house-homies.onrender.com', 'http://localhost:3000', 'wss://localhost:3000'])
-    return socketio
-
 # Running app
 if __name__ == "__main__":
-    # app = create_app()
     socketio.run(app, debug=DEBUG, host='0.0.0.0', port=10000)

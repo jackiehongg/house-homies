@@ -78,13 +78,11 @@ function App() {
 		const members = cookies.get('members')
 		const products = cookies.get('products')
 		const checks = cookies.get('checks')
-		// const receiptID = cookies.get('receiptid')
 
 		if (title) setTitle(title)
 		if (members) setMembers(members)
 		if (products) setProducts(products)
 		if (checks) setChecks(checks)
-		// if (receiptID) setReceiptID(receiptID)
 
 		setAfterInitialLoad(true)
 	}, [])
