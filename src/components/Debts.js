@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -7,6 +7,9 @@ import DialogTitle from '@mui/material/DialogTitle';
 import Slide from '@mui/material/Slide';
 import { Typography } from '@mui/material';
 import Box from '@mui/material/Box';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import { styled } from '@mui/material/styles';
+import Switch from '@mui/material/Switch';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Table from '@mui/material/Table';
@@ -20,6 +23,14 @@ import HelpIcon from '@mui/icons-material/Help';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
+});
+
+const OrangeTableCell = styled(TableCell)({
+    color: 'orange',
+});
+
+const BlueTableCell = styled(TableCell)({
+    color: 'blue',
 });
 
 function CustomTabPanel(props) {
@@ -43,11 +54,17 @@ function CustomTabPanel(props) {
 }
 
 
-export default function Debts({ members, products, debt, showDebts, handleCloseDebts }) {
+export default function Debts({ members, products, debt, showDebts, handleShowDebts }) {
     const [tab, setTab] = useState(0)
+    const [simplify, setSimplify] = useState(true)
+    const [simpleDebt, setSimpleDebt] = useState({})
 
     const handleChangeTab = (e, newTab) => {
         setTab(newTab);
+    }
+
+    const handleToggleSimplify = () => {
+        setSimplify(!simplify)
     }
 
     const calculateTotalcost = (products) => {
@@ -80,8 +97,25 @@ export default function Debts({ members, products, debt, showDebts, handleCloseD
             sum += debt[purchaser][member]
         }
         return sum.toFixed(2)
-        
     }
+
+    useEffect(() => {
+        let simpleDebt = structuredClone(debt)
+        for (let purchaser in debt) {
+            for (let debtor in debt[purchaser]) {
+                if (purchaser == debtor) {
+                    simpleDebt[purchaser][debtor] = 0
+                } else if (debt[purchaser][debtor] > debt[debtor][purchaser]) {
+                    simpleDebt[purchaser][debtor] = parseFloat((debt[purchaser][debtor] - debt[debtor][purchaser]).toFixed(2))
+                    simpleDebt[debtor][purchaser] = parseFloat(0)
+                } else {
+                    simpleDebt[debtor][purchaser] = parseFloat((debt[debtor][purchaser] - debt[purchaser][debtor]).toFixed(2))
+                    simpleDebt[purchaser][debtor] = parseFloat(0)
+                }
+            }
+        }
+        setSimpleDebt(simpleDebt)
+    }, [debt]);
 
 
     return (
@@ -90,7 +124,7 @@ export default function Debts({ members, products, debt, showDebts, handleCloseD
                 open={showDebts}
                 TransitionComponent={Transition}
                 keepMounted
-                onClose={handleCloseDebts}
+                onClose={handleShowDebts}
                 aria-describedby="alert-dialog-slide-description"
                 maxWidth="xl"
             >
@@ -98,7 +132,7 @@ export default function Debts({ members, products, debt, showDebts, handleCloseD
                 <DialogContent>
                     <Box sx={{ width: '100%' }}>
                         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                            <Tabs value={tab} onChange={handleChangeTab} aria-label="basic tabs example">
+                            <Tabs value={tab} onChange={handleChangeTab} aria-label="tab group">
                                 <Tab label="Overview" />
                                 {members.map((member) => (<Tab key={member} label={member}></Tab>))}
                             </Tabs>
@@ -117,27 +151,55 @@ export default function Debts({ members, products, debt, showDebts, handleCloseD
                         ))}
                     </Box>
                     <br></br>
-                    <TableContainer component={Paper}>
-                        <Table sx={{ minWidth: 700 }} aria-label="customized table">
-                            <TableHead>
-                                <TableRow >
-                                    <TableCell>Purchaser</TableCell>
-                                    {Object.keys(debt).map((member) => (<TableCell key={member} align="right">{member}</TableCell>))}
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {Object.keys(debt).map((purchaser) =>
-                                    <TableRow key={purchaser}>
-                                        <TableCell>{purchaser}</TableCell>
-                                        {Object.keys(debt).map((spender) => (<TableCell key={spender} align="right">{debt[purchaser][spender]}</TableCell>))}
-                                    </TableRow>)}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-                    <Typography color='action' variant='body2'><HelpIcon color='action' fontSize='small' />Reading along a row tells you how much you are owed, while down a column is how much you owe.</Typography>
+
+                    {/*  unsimplified debt*/}
+                        <Box style={{ display: !simplify ? 'block' : 'none', }}>
+                            <TableContainer component={Paper}>
+                                <Table sx={{ minWidth: 700 }} aria-label="unsimplified table">
+                                    <TableHead>
+                                        <TableRow >
+                                            <TableCell>Purchaser</TableCell>
+                                            {Object.keys(debt).map((member) => (<OrangeTableCell key={member} align="left">{member}</OrangeTableCell>))}
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {Object.keys(debt).map((purchaser) =>
+                                            <TableRow key={purchaser}>
+                                                <BlueTableCell>{purchaser}</BlueTableCell>
+                                                {Object.keys(debt).map((spender) => (<TableCell key={spender} align="left">{debt[purchaser][spender]}</TableCell>))}
+                                            </TableRow>)}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                        </Box>
+
+                    {/*  simplified debt*/}
+
+                        <Box style={{ display: simplify ? 'block' : 'none', }}>
+                            <TableContainer component={Paper}>
+                                <Table sx={{ minWidth: 700 }} aria-label="simplified table">
+                                    <TableHead>
+                                        <TableRow >
+                                            <TableCell>Purchaser</TableCell>
+                                            {Object.keys(simpleDebt).map((member) => (<OrangeTableCell key={member} align="left">{member}</OrangeTableCell>))}
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {Object.keys(simpleDebt).map((purchaser) =>
+                                            <TableRow key={purchaser}>
+                                                <BlueTableCell>{purchaser}</BlueTableCell>
+                                                {Object.keys(simpleDebt).map((spender) => (<TableCell key={spender} align="left">{simpleDebt[purchaser][spender]}</TableCell>))}
+                                            </TableRow>)}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                        </Box>
+
+                    <Box display="flex" justifyContent="center" alignItems="center" ><FormControlLabel control={<Switch onChange={handleToggleSimplify} defaultChecked />} label={simplify ? "Simplified": "Simplify"} /></Box>
+                    <Typography color='action' variant='body2'><HelpIcon color='action' fontSize='small' />Simplify helps minimize back and forth transactions. <span style={{ color: 'orange' }}>Orange Names</span> owe <span style={{ color: 'blue' }}>Blue Names</span> the amount where they intersect on the table.</Typography>
                 </DialogContent>
                 <DialogActions>
-                    <Button variant="contained" onClick={handleCloseDebts}>OK</Button>
+                    <Button variant="contained" onClick={handleShowDebts}>OK</Button>
                 </DialogActions>
             </Dialog>
 

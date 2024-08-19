@@ -1,4 +1,5 @@
 import { React, useState, useRef } from "react";
+import styled from "styled-components";
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
@@ -8,6 +9,7 @@ import MenuItem from '@mui/material/MenuItem';
 
 
 export default function ProductForm({ handleSubmitProduct, members }) {
+
   const [label, setLabel] = useState("");
   const [value, setValue] = useState("");
 
@@ -23,7 +25,7 @@ export default function ProductForm({ handleSubmitProduct, members }) {
   return (
     <>
       <Box component="form" onSubmit={(e) => { handleSubmit(e); inputRef.current.focus(); }} sx={{ '& > :not(style)': { m: 1, width: '25ch' } }} autoComplete='off'>
-        <Typography variant="h5" gutterBottom>Add Product</Typography>
+        <Typography variant="h5" gutterBottom>Add Expenses</Typography>
         <TextField
           select
           id="outlined-select-purchaser"
@@ -33,6 +35,7 @@ export default function ProductForm({ handleSubmitProduct, members }) {
           placeholder="None"
           defaultValue=""
           disabled={members.length < 1}
+          required
         >
           {members.map((member) => (
             <MenuItem key={member} value={member}>
@@ -44,7 +47,7 @@ export default function ProductForm({ handleSubmitProduct, members }) {
           required
           id="outlined-label"
           name="label"
-          label="Product"
+          label="Expense"
           InputLabelProps={{
             shrink: true,
           }}
@@ -63,7 +66,12 @@ export default function ProductForm({ handleSubmitProduct, members }) {
           }}
           size="small"
           value={value}
-          onChange={(e) => setValue(e.target.value)}
+          onChange={(e) => {
+            // Ensure input is numeric
+            if (/^\d*\.?\d*$/.test(e.target.value)) {
+              setValue(e.target.value);
+            }
+          }}
         />
         <Button variant="outlined" type="submit">Submit</Button>
       </Box>

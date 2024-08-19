@@ -25,13 +25,14 @@ if FLASK_ENV == 'production':
 else:
     client = MongoClient()
     DEBUG = True
-    print('connected to dev database')
+    green('connected to dev database')
 
 try:
     client.admin.command('ping')
-    print("Pinged your deployment. You successfully connected to MongoDB!")
+    green("Pinged your deployment. You successfully connected to MongoDB!")
 except Exception as e:
-    print(e)
+    red("error")
+    red(e)
 
 db = client.househomies
 receipts = db.receipts

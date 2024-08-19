@@ -35,6 +35,7 @@
     "start": "react-scripts start",
     "start-server": "python ./backend/server.py",
     "dev": "concurrently --kill-others \"npm run start\" \"python ./backend/server.py\"",
+    "dev3": "concurrently --kill-others \"npm run start\" \"python3 ./backend/server.py\"",
     "build": "react-scripts build"
   },
   "eslintConfig": {

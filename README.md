@@ -12,6 +12,7 @@ HouseHomies is a tool for a group of users to split a bill amongst each other in
     - [x] Save and load past receipts
 - [x] Share link
 - [x] Autosaving and synchronous editing
+- [x] Simplifed transactions
 - [ ] Sorting
 
 

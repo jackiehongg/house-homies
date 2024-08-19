@@ -19,6 +19,7 @@ import NavbarMenu from './components/NavbarMenu';
 import ShareLink from './components/ShareLink';
 import Debts from './components/Debts';
 import PastReceipts from './components/PastReceipts';
+import HelpDialog from './components/HelpDialog'
 
 if (process.env.NODE_ENV === 'production') disableReactDevTools()
 
@@ -33,15 +34,24 @@ function App() {
 	const [receiptID, setReceiptID] = useState(cookies.get('receiptid') ? cookies.get('receiptid') : ObjectId().toString())
 	const [showDebts, setShowDebts] = useState(false)
 	const [showShareLink, setShowShareLink] = useState(false)
+	const [showHelp, setShowHelp] = useState(false)
 	const [showPastReceipts, setShowPastReceipts] = useState(false)
 	const [shareLink, setShareLink] = useState(null)
 	const [user, setUser] = useState(null)
 	const [afterInitialLoad, setAfterInitialLoad] = useState(false)
-	const handleShowShareLink = () => setShowShareLink(true);
-	const handleCloseShareLink = () => setShowShareLink(false);
 
-	const handleShowDebts = () => setShowDebts(true);
-	const handleCloseDebts = () => setShowDebts(false);
+	const handleShowShareLink = () => {
+		setShowShareLink(prevShowShareLink => !prevShowShareLink)
+	}
+
+	const handleShowDebts = () => {
+		setShowDebts(prevShowDebts => !prevShowDebts)
+	}
+
+	const handleShowHelp = () => {
+		setShowHelp(prevShowHelp => !prevShowHelp);
+	};
+	
 
 	const base_url = process.env.NODE_ENV === 'production' ? 'https://house-homies.onrender.com' : 'http://localhost:3000'
 	const URLparams = new URLSearchParams(window.location.search)
@@ -216,7 +226,7 @@ function App() {
 		// members: [m1, m2, m3, ...]
 		// products: [{id: pid, label: l1, value: v1, purchaser, m1}, ...]
 		// checks: {m1+id: weight, ...}
-
+		// debt: {purchaser: {debtor: d1, debtor2: d2, debtor3: d3, ...}, ...}
 		const newDebt = {}
 
 		for (const member of members) {
@@ -252,12 +262,12 @@ function App() {
 	};
 
 	const handleReset = (e) => {
+		setReceiptID(ObjectId().toString())
 		setTitle('New Receipt')
 		setMembers([])
 		setProducts([])
 		setChecks({})
 		setDebt({})
-		setReceiptID(ObjectId().toString())
 
 		cookies.remove('title')
 		cookies.remove('members')
@@ -294,13 +304,15 @@ function App() {
 					<Stack direction="row" spacing={1}>
 						<Button variant='contained' onClick={handleCalculateDebt}>Split</Button>
 						<Button variant='outlined' onClick={handleShare} disabled={receiptID ? false : true}>Share</Button>
+						<Button variant='outlined' onClick={handleShowHelp}>Help</Button>
 						<Box sx={{ flexGrow: 1 }}></Box>
 						<Button variant='outlined' color="warning" onClick={handleReset}>Create New Without Saving</Button>
 					</Stack>
 
-					<Debts members={members} products={products} debt={debt} showDebts={showDebts} handleCloseDebts={handleCloseDebts} />
+					<Debts members={members} products={products} debt={debt} showDebts={showDebts} handleShowDebts={handleShowDebts} />
 					<PastReceipts showPastReceipts={showPastReceipts} handleShowPastReceipts={handleShowPastReceipts} user={user} handleLoadReceipt={handleLoadReceipt} />
-					<ShareLink shareLink={shareLink} showShareLink={showShareLink} handleCloseShareLink={handleCloseShareLink} />
+					<ShareLink shareLink={shareLink} showShareLink={showShareLink} handleShowShareLink={handleShowShareLink} />
+					<HelpDialog showHelp={showHelp} handleShowHelp={handleShowHelp}/>
 				</Container>
 			)}
 		</Box>

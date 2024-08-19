@@ -15,6 +15,43 @@ import Skeleton from '@mui/material/Skeleton';
 
 export default function ProductClaim({ members, products, checks, handleClaim, handleDeleteProduct }) {
 
+	const OutlinedBadgeLink = ({ href, onClick, label }) => {
+		return (
+			<a 
+				href={href}
+				onClick={onClick}
+				style={{
+					display: 'inline-block',
+					padding: '6px 12px',
+					borderRadius: '12px',
+					border: '2px solid #007bff', // Blue border for the badge
+					backgroundColor: '#ffffff', // White background
+					color: '#007bff', // Blue text for the default state
+					textDecoration: 'none',
+					fontWeight: 'bold',
+					textAlign: 'center',
+					fontSize: '0.875rem',
+					lineHeight: '1.5',
+					transition: 'all 0.3s', // Smooth transition for all changes
+					cursor: 'pointer',
+					whiteSpace: 'nowrap',
+				}}
+				onMouseOver={(e) => {
+					e.currentTarget.style.backgroundColor = '#ffcccc'; // Light red background on hover
+					e.currentTarget.style.color = '#ff0000'; // Red text on hover
+					e.currentTarget.style.borderColor = '#ff0000'; // Red border on hover
+				}}
+				onMouseOut={(e) => {
+					e.currentTarget.style.backgroundColor = '#ffffff'; // White background on hover out
+					e.currentTarget.style.color = '#007bff'; // Blue text on hover out
+					e.currentTarget.style.borderColor = '#007bff'; // Blue border on hover out
+				}}
+			>
+				{label}
+			</a>
+		);
+	};
+
 	const StyledTableRow = styled(TableRow)(({ theme }) => ({
 		'&:nth-of-type(odd)': {
 			backgroundColor: theme.palette.action.hover,
@@ -33,7 +70,7 @@ export default function ProductClaim({ members, products, checks, handleClaim, h
 						<Table sx={{ minWidth: 650 }} aria-label="simple table">
 							<TableHead>
 								<TableRow>
-									<TableCell>Product</TableCell>
+									<TableCell>Expense</TableCell>
 									<TableCell>Value</TableCell>
 									<TableCell>Purchaser</TableCell>
 									{members.map((member) => (<TableCell key={member} align='right'>{member}</TableCell>))}
@@ -42,7 +79,7 @@ export default function ProductClaim({ members, products, checks, handleClaim, h
 							<TableBody>
 								{products.map((product) => (
 									<StyledTableRow key={product['id']} sx={{ 'td ,th': { border: 0 }, borderBottom: 0 }}>
-										<TableCell><a href='/' style={{ 'textDecoration': 'none', 'color': 'inherit' }} onClick={(e) => handleDeleteProduct(e, product['id'])} className='p-2 text-capitalize'>{product['label']}</a></TableCell>
+										<TableCell><OutlinedBadgeLink href='/' onClick={(e) => handleDeleteProduct(e, product.id)}label={product.label}/></TableCell>
 										<TableCell>{product.value}</TableCell>
 										<TableCell>{product.purchaser}</TableCell>
 										{members.map((member) => (
@@ -53,10 +90,11 @@ export default function ProductClaim({ members, products, checks, handleClaim, h
 							</TableBody>
 						</Table>
 					</TableContainer >
+					<br></br>
 				</>
 				:
 				<>
-					<Typography variant='h5'>Add your members and some products to get started!</Typography>
+					<Typography variant='h5'>Add your members and some expenses to get started!</Typography>
 					<Box >
 						<Skeleton />
 						<Skeleton />
